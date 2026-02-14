@@ -8,7 +8,7 @@ module.exports = [
 		files: ["**/*.js"],
 		languageOptions: {
 			ecmaVersion: 2020,
-			sourceType: "module",
+			sourceType: "commonjs",
 			globals: {
 				console: "readonly",
 				process: "readonly",

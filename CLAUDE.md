@@ -28,8 +28,18 @@ This extension presents Mermaid diagrams from markdown files as a focused, full-
 
 Concise, imperative mood. Describe *what changed*. Commit at meaningful intervals.
 
+## Multi-File Change Protocol
+
+When a task touches 3+ files or requires multiple related edits:
+
+1. **Branch first** - always work on a feature branch, never directly on main
+2. **File-touch matrix** - map which files each change touches, then group/sequence to minimize redundant edits to the same file across commits
+3. **Phase the work** - group changes into logical phases (infra/config first, then code, then tests). Never fix a file you're about to delete
+4. **Gate each phase** - after each phase: commit, build `.vsix`, run tests, verify before proceeding
+5. **Track in a workplan** - for 4+ phases, create a `WORKPLAN.md` (delete when done) with the matrix and checklist
+
 ## Testing
 
 - Manual testing via F5 debug launch
 - Test file at `examples/test.md` with diverse Mermaid diagram types
-- `npm run lint` must pass before any work is considered complete
+- `npm test` must pass before any work is considered complete
