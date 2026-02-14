@@ -2,7 +2,7 @@
 	"name": "mermaid-slideshow",
 	"displayName": "Mermaid Slideshow",
 	"description": "Preview Mermaid diagrams in a focused, navigable slideshow with keyboard controls and live updates as you edit.",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"icon": "assets/icon.png",
 	"publisher": "KunalPathak",
 	"author": "Kunal Pathak",

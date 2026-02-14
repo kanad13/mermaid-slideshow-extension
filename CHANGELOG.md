@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2026-02-14
+
+### Added
+- Configurable Mermaid diagram themes (default, dark, forest, neutral) via VS Code Settings
+- Explicit activation on markdown files (`onLanguage:markdown`)
+
+### Changed
+- Rewritten extension description and README with benefit-oriented branding and use cases
+- Updated architecture and development docs to reflect theme configuration
+
 ## [0.1.0] - 2026-02-14
 
 ### Added

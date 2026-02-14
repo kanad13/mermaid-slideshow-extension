@@ -127,6 +127,7 @@ Open the dev host and verify:
 - Navigation works (arrow keys, scroll, click arrows)
 - Slide counter updates correctly
 - Live updates work when editing the source file
+- Theme setting works (Settings > search "Mermaid Slideshow" > change theme > verify re-render)
 - Edge cases: zero diagrams (message shown), single diagram (nav hidden), file switch
 - No errors in Developer Tools (`Help > Toggle Developer Tools`)
 
