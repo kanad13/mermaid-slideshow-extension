@@ -120,13 +120,16 @@ function getWebviewContent(diagrams, nonce) {
 			align-items: center;
 			justify-content: center;
 			height: 100vh;
-			padding: 40px;
+			padding: 40px 60px;
 			position: relative;
 		}
 
 		.slide-content {
-			max-width: 100%;
+			width: 100%;
 			max-height: calc(100vh - 120px);
+			display: flex;
+			align-items: center;
+			justify-content: center;
 			overflow: auto;
 		}
 
@@ -134,6 +137,13 @@ function getWebviewContent(diagrams, nonce) {
 			background: transparent;
 			border: none;
 			text-align: center;
+			width: 100%;
+		}
+
+		.slide-content .mermaid svg {
+			max-width: 100%;
+			max-height: calc(100vh - 140px);
+			height: auto;
 		}
 
 		/* Slide counter */
