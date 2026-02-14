@@ -17,7 +17,9 @@ module.exports = [
 				__filename: "readonly",
 				exports: "writable",
 				module: "writable",
-				require: "readonly"
+				require: "readonly",
+				setTimeout: "readonly",
+				clearTimeout: "readonly"
 			}
 		},
 		rules: {

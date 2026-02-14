@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}' https://cdn.jsdelivr.net; style-src 'unsafe-inline';">
+	<title>Mermaid Slideshow</title>
+	<style>
+		* { box-sizing: border-box; margin: 0; padding: 0; }
+
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+			background: var(--vscode-editor-background);
+			color: var(--vscode-editor-foreground);
+			height: 100vh;
+			overflow: hidden;
+			user-select: none;
+		}
+
+		.slide-container {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+			padding: 40px 60px;
+			position: relative;
+		}
+
+		.slide-content {
+			width: 100%;
+			max-height: calc(100vh - 120px);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			overflow: auto;
+		}
+
+		.slide-content .mermaid {
+			background: transparent;
+			border: none;
+			text-align: center;
+			width: 100%;
+		}
+
+		.slide-content .mermaid svg {
+			max-width: 100%;
+			max-height: calc(100vh - 140px);
+			height: auto;
+		}
+
+		.slide-counter {
+			position: fixed;
+			bottom: 16px;
+			right: 20px;
+			font-size: 0.85em;
+			color: var(--vscode-descriptionForeground);
+			background: var(--vscode-editorWidget-background);
+			padding: 4px 12px;
+			border-radius: 12px;
+			border: 1px solid var(--vscode-widget-border, rgba(128,128,128,0.2));
+		}
+
+		.nav-arrow {
+			position: fixed;
+			top: 50%;
+			transform: translateY(-50%);
+			background: transparent;
+			border: 1px solid var(--vscode-widget-border, rgba(128,128,128,0.2));
+			color: var(--vscode-editor-foreground);
+			font-size: 1.4em;
+			width: 36px;
+			height: 36px;
+			border-radius: 50%;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: background 0.15s ease, border-color 0.15s ease;
+			z-index: 10;
+		}
+
+		.nav-arrow:hover {
+			background: var(--vscode-list-hoverBackground);
+			border-color: var(--vscode-focusBorder);
+		}
+
+		.nav-arrow.prev { left: 10px; }
+		.nav-arrow.next { right: 10px; }
+
+		.nav-arrow:disabled {
+			opacity: 0.3;
+			cursor: default;
+		}
+
+		.nav-arrow:disabled:hover {
+			background: transparent;
+			border-color: var(--vscode-widget-border, rgba(128,128,128,0.2));
+		}
+
+		.single-slide .nav-arrow,
+		.single-slide .slide-counter {
+			display: none;
+		}
+	</style>
+</head>
+<body class="{{SINGLE_SLIDE_CLASS}}">
+	<button class="nav-arrow prev" aria-label="Previous slide">&#8249;</button>
+	<button class="nav-arrow next" aria-label="Next slide">&#8250;</button>
+	<div class="slide-container">
+		<div class="slide-content">
+			<pre class="mermaid"></pre>
+		</div>
+	</div>
+	<div class="slide-counter"></div>
+
+	<script type="module" nonce="{{NONCE}}">
+		import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+		const diagrams = {{DIAGRAMS_JSON}};
+		let currentIndex = 0;
+
+		mermaid.initialize({
+			startOnLoad: false,
+			theme: '{{THEME}}',
+			securityLevel: 'loose'
+		});
+
+		const container = document.querySelector('.slide-content');
+		const counter = document.querySelector('.slide-counter');
+		const prevBtn = document.querySelector('.nav-arrow.prev');
+		const nextBtn = document.querySelector('.nav-arrow.next');
+
+		async function renderSlide(index) {
+			currentIndex = index;
+			container.innerHTML = '<pre class="mermaid">' + diagrams[currentIndex] + '</pre>';
+
+			try {
+				await mermaid.run({ querySelector: '.mermaid' });
+			} catch (error) {
+				console.error('Mermaid rendering failed:', error);
+				container.innerHTML = '<p style="color: var(--vscode-errorForeground);">Failed to render diagram ' + (currentIndex + 1) + '</p>';
+			}
+
+			counter.textContent = (currentIndex + 1) + ' / ' + diagrams.length;
+			prevBtn.disabled = currentIndex === 0;
+			nextBtn.disabled = currentIndex === diagrams.length - 1;
+		}
+
+		function goNext() {
+			if (currentIndex < diagrams.length - 1) {
+				renderSlide(currentIndex + 1);
+			}
+		}
+
+		function goPrev() {
+			if (currentIndex > 0) {
+				renderSlide(currentIndex - 1);
+			}
+		}
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+				e.preventDefault();
+				goNext();
+			} else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+				e.preventDefault();
+				goPrev();
+			}
+		});
+
+		let scrollCooldown = false;
+		document.addEventListener('wheel', (e) => {
+			if (scrollCooldown) return;
+			scrollCooldown = true;
+			setTimeout(() => { scrollCooldown = false; }, 300);
+
+			if (e.deltaY > 0) {
+				goNext();
+			} else if (e.deltaY < 0) {
+				goPrev();
+			}
+		});
+
+		prevBtn.addEventListener('click', goPrev);
+		nextBtn.addEventListener('click', goNext);
+
+		window.addEventListener('message', (event) => {
+			const message = event.data;
+			if (message.type === 'update') {
+				diagrams.length = 0;
+				diagrams.push(...message.diagrams);
+
+				if (diagrams.length === 0) {
+					container.innerHTML = '<p style="color: var(--vscode-descriptionForeground);">No Mermaid diagrams found.</p>';
+					counter.textContent = '';
+					document.body.classList.add('single-slide');
+					return;
+				}
+
+				document.body.classList.toggle('single-slide', diagrams.length === 1);
+				const newIndex = Math.min(currentIndex, diagrams.length - 1);
+				renderSlide(newIndex);
+			}
+		});
+
+		renderSlide(0);
+	</script>
+</body>
+</html>
