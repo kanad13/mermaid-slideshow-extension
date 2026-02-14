@@ -69,7 +69,7 @@ function getWebviewContent(diagrams, nonce) {
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline';">
-	<title>Mermaid Slides</title>
+	<title>Mermaid Slideshow</title>
 	<style>
 		body {
 			display: flex;
@@ -103,7 +103,7 @@ function getWebviewContent(diagrams, nonce) {
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net; style-src 'unsafe-inline';">
-	<title>Mermaid Slides</title>
+	<title>Mermaid Slideshow</title>
 	<style>
 		* { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -335,19 +335,19 @@ function postDiagramUpdate(panel, diagrams) {
 /**
  * Activation function — called when the extension loads.
  *
- * Registers the "Show Mermaid Slides Preview" command and manages
+ * Registers the "Show Mermaid Slideshow Preview" command and manages
  * a single webview panel that displays Mermaid diagrams as a slideshow.
  *
  * @param {vscode.ExtensionContext} context - Extension context provided by VS Code
  */
 function activate(context) {
-	console.log("mermaidSlides extension activated");
+	console.log("mermaidSlideshow extension activated");
 
 	let currentPanel = undefined;
 	let currentDocument = undefined;
 
 	const disposable = vscode.commands.registerCommand(
-		"mermaidSlides.showPreview",
+		"mermaidSlideshow.showPreview",
 		function () {
 			const editor = vscode.window.activeTextEditor;
 			if (!editor) {
@@ -371,8 +371,8 @@ function activate(context) {
 				const nonce = getNonce();
 
 				currentPanel = vscode.window.createWebviewPanel(
-					"mermaidSlidesPreview",
-					"Mermaid Slides",
+					"mermaidSlideshow",
+					"Mermaid Slideshow",
 					vscode.ViewColumn.Beside,
 					{
 						enableScripts: true,

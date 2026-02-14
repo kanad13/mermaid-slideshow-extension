@@ -1,14 +1,14 @@
 {
-	"name": "mermaid-slides-preview",
-	"displayName": "Mermaid Slides Preview",
-	"description": "Extract Mermaid diagrams from markdown files and preview them as a navigable slideshow.",
+	"name": "mermaid-slideshow",
+	"displayName": "Mermaid Slideshow",
+	"description": "Extract Mermaid diagrams from markdown files and present them as a navigable slideshow.",
 	"version": "0.1.0",
 	"icon": "assets/icon.png",
 	"publisher": "KunalPathak",
 	"author": "Kunal Pathak",
-	"homepage": "https://github.com/kanad13/mermaid-slides-preview",
+	"homepage": "https://github.com/kanad13/mermaid-slideshow",
 	"bugs": {
-		"url": "https://github.com/kanad13/mermaid-slides-preview/issues"
+		"url": "https://github.com/kanad13/mermaid-slideshow/issues"
 	},
 	"engines": {
 		"vscode": "^1.85.0",
@@ -20,14 +20,13 @@
 	],
 	"keywords": [
 		"mermaid",
-		"slides",
-		"preview",
-		"diagrams",
 		"slideshow",
+		"presentation",
+		"diagrams",
 		"flowchart",
 		"sequence diagram",
 		"markdown",
-		"presentation"
+		"preview"
 	],
 	"qna": "marketplace",
 	"galleryBanner": {
@@ -38,8 +37,8 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "mermaidSlides.showPreview",
-				"title": "Show Mermaid Slides Preview",
+				"command": "mermaidSlideshow.showPreview",
+				"title": "Show Mermaid Slideshow",
 				"category": "Mermaid",
 				"icon": {
 					"light": "assets/icon-presentation.svg",
@@ -50,7 +49,7 @@
 		"menus": {
 			"editor/title": [
 				{
-					"command": "mermaidSlides.showPreview",
+					"command": "mermaidSlideshow.showPreview",
 					"when": "resourceLangId == markdown",
 					"group": "navigation"
 				}
@@ -79,7 +78,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/kanad13/mermaid-slides-preview.git"
+		"url": "https://github.com/kanad13/mermaid-slideshow.git"
 	},
 	"license": "MIT",
 	"pricing": "Free"

@@ -1,12 +1,12 @@
 # Development Guide
 
-Setup, workflow, and release process for the Mermaid Slides Preview extension.
+Setup, workflow, and release process for the Mermaid Slideshow extension.
 
 ## Local Setup
 
 ```bash
-git clone https://github.com/kanad13/mermaid-slides-preview.git
-cd mermaid-slides-preview
+git clone https://github.com/kanad13/mermaid-slideshow.git
+cd mermaid-slideshow
 npm ci
 npm run lint
 npm run package
@@ -26,7 +26,7 @@ Prefixes: `feat/`, `fix/`, `docs/`, `refactor/`
 
 ### 2. Make changes
 
-Edit `src/extension.js`. Press **F5** to launch the dev host. Open `examples/test.md` and run `Mermaid: Show Mermaid Slides Preview` from the Command Palette.
+Edit `src/extension.js`. Press **F5** to launch the dev host. Open `examples/test.md` and run `Mermaid: Show Mermaid Slideshow` from the Command Palette.
 
 ### 3. Test
 

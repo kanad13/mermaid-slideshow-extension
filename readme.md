@@ -1,4 +1,4 @@
-# Mermaid Slides Preview
+# Mermaid Slideshow
 
 A VS Code extension that extracts Mermaid diagrams from markdown files and presents them as a navigable slideshow.
 
@@ -16,13 +16,13 @@ A VS Code extension that extracts Mermaid diagrams from markdown files and prese
 
 1. Open VS Code (or any VS Code-based editor)
 2. Go to Extensions
-3. Search for "Mermaid Slides Preview" or `KunalPathak.mermaid-slides-preview`
+3. Search for "Mermaid Slideshow" or `KunalPathak.mermaid-slideshow`
 4. Click Install
 
 ## Usage
 
 1. Open any markdown file containing Mermaid diagram blocks
-2. Click the presentation icon in the editor title bar (or use Command Palette: `Mermaid: Show Mermaid Slides Preview`)
+2. Click the presentation icon in the editor title bar (or use Command Palette: `Mermaid: Show Mermaid Slideshow`)
 3. Navigate slides with:
    - Left/Right arrow keys
    - Up/Down arrow keys

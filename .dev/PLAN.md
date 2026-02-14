@@ -1,13 +1,13 @@
-# Mermaid Slides Preview — Project Plan
+# Mermaid Slideshow — Project Plan
 
 ## Objective
 
-Transform the existing Lightweight Markdown Preview extension into **Mermaid Slides Preview**: a VS Code extension that extracts Mermaid diagrams from markdown files and presents them as a navigable slideshow in a side panel.
+Transform the existing Lightweight Markdown Preview extension into **Mermaid Slideshow**: a VS Code extension that extracts Mermaid diagrams from markdown files and presents them as a navigable slideshow in a side panel.
 
 ## Architecture
 
 ```
-User opens .md file → clicks "Mermaid Slides Preview" button in editor title bar
+User opens .md file → clicks "Mermaid Slideshow" button in editor title bar
   → extension extracts all Mermaid blocks (```mermaid and ::: mermaid syntaxes)
   → webview opens beside editor
   → displays one diagram per slide, full-panel, centered
@@ -22,7 +22,7 @@ Single source file (`src/extension.js`), single webview panel, closure-based sta
 ### Phase 1: Foundation ✓
 Strip the old extension identity and establish the new one.
 
-- [x] Update `package.json`: name → `mermaid-slides-preview`, new displayName, description, command ID (`mermaidSlides.showPreview`), remove `marked` dependency
+- [x] Update `package.json`: name → `mermaid-slideshow`, new displayName, description, command ID (`mermaidSlideshow.showPreview`), remove `marked` dependency
 - [x] Update `src/extension.js`: rename command, update activation log, strip `marked` import
 - [x] Delete old `.vsix` artifact
 - [x] Replace `examples/test.md` with a mermaid-focused test file (multiple diagram types)
@@ -63,15 +63,15 @@ Ensure the preview stays in sync with the source file.
 
 **User milestone:** Edit test.md (add/remove a diagram), confirm preview updates without losing slide position.
 
-### Phase 5: Cleanup & Ship
+### Phase 5: Cleanup & Ship ✓
 Prepare for release.
 
-- [ ] Update `readme.md` for new extension
-- [ ] Update `docs/architecture.md` and `docs/development.md`
-- [ ] Reset `CHANGELOG.md` for v0.1.0
-- [ ] Update/replace `assets/icon.png` if desired
-- [ ] `npm run lint` passes
-- [ ] `npm run package` produces valid .vsix
+- [x] Update `readme.md` for new extension
+- [x] Update `docs/architecture.md` and `docs/development.md`
+- [x] Reset `CHANGELOG.md` for v0.1.0
+- [x] Update/replace `assets/icon.png` if desired (user updated icons before Phase 1)
+- [x] `npm run lint` passes
+- [x] `npm run package` produces valid .vsix (56 KB, 10 files)
 - [ ] CI workflows work (push to branch, verify)
 
 **User milestone:** Install .vsix in VS Code (not debug mode). Full end-to-end test.

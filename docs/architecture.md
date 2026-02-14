@@ -1,6 +1,6 @@
 # Architecture
 
-Design decisions and architectural patterns for the Mermaid Slides Preview extension.
+Design decisions and architectural patterns for the Mermaid Slideshow extension.
 
 ## Overview
 
@@ -9,7 +9,7 @@ The extension extracts Mermaid diagram code blocks from markdown files and rende
 ## High-Level Flow
 
 ```
-User opens .md file → clicks "Mermaid Slides Preview"
+User opens .md file → clicks "Mermaid Slideshow"
          ↓
 extractMermaidBlocks(rawText) → string[]
          ↓

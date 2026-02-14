@@ -1,4 +1,4 @@
-# Mermaid Slides Test File
+# Mermaid Slideshow Test File
 
 This file contains 5 Mermaid diagrams for testing the slideshow preview.
 

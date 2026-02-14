@@ -45,8 +45,8 @@ Extraction operates on raw markdown text via regex, before any parsing. This is 
 
 ## Naming
 
-- Extension ID prefix: `mermaidSlides`
-- Command IDs: `mermaidSlides.<action>` (e.g., `mermaidSlides.showPreview`)
+- Extension ID prefix: `mermaidSlideshow`
+- Command IDs: `mermaidSlideshow.<action>` (e.g., `mermaidSlideshow.showPreview`)
 - Functions: camelCase, verb-first (e.g., `extractMermaidBlocks`, `getWebviewContent`)
 - CSS classes: kebab-case (e.g., `slide-container`, `slide-counter`)
 
