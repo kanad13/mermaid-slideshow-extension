@@ -1,80 +1,499 @@
 # Development Guide
 
-Setup, workflow, and release process for the Mermaid Slideshow extension.
+A comprehensive guide to develop, test, and release the Mermaid Slideshow extension.
 
-## Local Setup
+## 1. Local Setup & Verification
+
+Get your environment running with these commands.
 
 ```bash
+# Clone the repository
 git clone https://github.com/kanad13/mermaid-slideshow.git
 cd mermaid-slideshow
+
+# Install dependencies (strictly from lock file)
 npm ci
+
+# Run linters to check for code quality
 npm run lint
+
+# Create a distributable .vsix file
 npm run package
 ```
 
-If issues occur, clean reinstall: `rm -rf node_modules && npm ci`
+### Troubleshooting Setup
 
-## Development Workflow
-
-### 1. Create a branch
+If you encounter issues, a clean reinstall from the lock file often helps.
 
 ```bash
+rm -rf node_modules
+npm ci
+```
+
+> **`npm ci` vs `npm install`:** Always use `npm ci` for setup and troubleshooting. It installs exact versions from `package-lock.json`, ensuring reproducible builds. Only use `npm install` when intentionally adding or upgrading a dependency — then commit the updated `package-lock.json`.
+
+## 2. Feature Development Workflow
+
+### Step 1: Create a Feature Branch
+
+Always create a new branch for features. Never commit directly to `main`.
+
+```bash
+# Create and switch to a feature branch
 git checkout -b feat/your-feature-name
 ```
 
-Prefixes: `feat/`, `fix/`, `docs/`, `refactor/`
+Branch naming convention:
+- `feat/` - New features
+- `fix/` - Bug fixes
+- `docs/` - Documentation updates
+- `refactor/` - Code refactoring
 
-### 2. Make changes
+### Step 2: Make Changes
 
-Edit `src/extension.js`. Press **F5** to launch the dev host. Open `examples/test.md` and run `Mermaid: Show Mermaid Slideshow` from the Command Palette.
+1. **Edit Code:** Make changes to `src/extension.js` or other source files.
+2. **Launch Dev Host:** Press `F5` in VS Code to open a dev window with the extension loaded.
+3. **Test Locally:** Open `examples/test.md` and run `Mermaid: Show Mermaid Slideshow` from the Command Palette (`Ctrl+Shift+P`). Changes apply in real-time.
+4. **Lint Before Committing:** Run `npm run lint` to catch style issues early.
 
-### 3. Test
+### Step 3: Commit Changes
 
 ```bash
+# Stage your changes
+git add src/extension.js
+
+# Commit with a descriptive message
+git commit -m "feat: add descriptive title
+
+- Bullet point details
+- More details"
+```
+
+Keep commits atomic and logical. Write commit messages that explain _why_ the change was made.
+
+### Code Style
+
+- **Tab indentation** (enforced by ESLint - see `eslint.config.js`)
+- `const`/`let` only (no `var`)
+- Keep functions simple with clear JSDoc comments
+- No console logs in production code (unless debugging is explicitly required)
+
+### JSDoc Standards
+
+All exported functions **must** have JSDoc comments describing:
+- Purpose and behavior
+- Parameters with types
+- Return values
+- Side effects (state changes, file I/O, etc.)
+
+**Example:**
+
+```javascript
+/**
+ * Generates a cryptographic nonce for Content Security Policy.
+ * Used to prevent XSS attacks by allowing only trusted scripts to execute.
+ * @returns {string} A random 32-character hexadecimal nonce
+ */
+function getNonce() {
+	let text = "";
+	const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	for (let i = 0; i < 32; i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	return text;
+}
+```
+
+### Dependencies
+
+**Avoid adding new NPM dependencies.** This keeps the extension lightweight. No runtime dependencies — Mermaid is loaded via CDN in the webview. If a new dependency is absolutely necessary:
+1. Justify the need
+2. Check bundle size impact (`npm run package` and review dist/)
+3. Consider using a CDN instead
+4. See [architecture.md](architecture.md) for security considerations
+
+### Step 4: Test Thoroughly
+
+```bash
+# Run linting
 npm run lint
+
+# Build package to verify no errors
 npm run package
 ```
 
-Verify in the dev host:
-- Diagrams render at correct size
-- Navigation works (arrows, scroll, keyboard)
+Open the dev host and verify:
+- Mermaid diagrams render at correct size
+- Navigation works (arrow keys, scroll, click arrows)
 - Slide counter updates correctly
 - Live updates work when editing the source file
-- Edge cases: zero diagrams, single diagram, file switch
+- Edge cases: zero diagrams (message shown), single diagram (nav hidden), file switch
+- No errors in Developer Tools (`Help > Toggle Developer Tools`)
 
-### 4. Commit and merge
+### Step 5: Merge to Main
 
 ```bash
-git add src/extension.js
-git commit -m "feat: descriptive message"
-git checkout main && git merge --no-ff feat/your-feature-name
+# Switch to main branch
+git checkout main
+
+# Ensure main is up to date
+git pull origin main
+
+# Merge your feature branch (use --no-ff for clarity)
+git merge --no-ff feat/your-feature-name
+
+# Push to remote
 git push origin main
 ```
 
-## Code Style
+After pushing, verify that:
+1. GitHub Actions builds pass (check the Actions tab)
+2. The build produces valid .vsix files
+3. No new warnings or errors in the CI logs
 
-- **Tabs** for indentation (enforced by ESLint)
-- **Double quotes**, **semicolons required**
-- `const`/`let` only (no `var`)
-- JSDoc on all exported functions
-- No unnecessary console logs in production code
+## 3. Release to Marketplace
 
-## Release Process
+**Only release from `main` branch after all features are merged and tested.**
 
-1. Update version in `package.json` and `package-lock.json`
-2. Add entry to `CHANGELOG.md`
-3. Commit: `git commit -m "chore: bump version to X.Y.Z"`
-4. Tag: `git tag -a vX.Y.Z -m "Release version X.Y.Z"`
-5. Push: `git push origin main && git push origin vX.Y.Z`
-6. Publish: `npm run publish`
+Follow these steps precisely in order. Each step is required and builds on the previous one. Replace `X.Y.Z` with your actual version number throughout.
 
-## Dependencies
+### Pre-Release Checklist
 
-No runtime dependencies. Mermaid is loaded via CDN in the webview. Keep it this way — avoid adding NPM packages unless absolutely necessary.
+Before starting:
 
-## Common Pitfalls
+```
+- [ ] All features merged to `main`
+- [ ] GitHub Actions build passes
+- [ ] `git status` shows no uncommitted changes
+- [ ] Decide version bump (MAJOR.MINOR.PATCH per semantic versioning)
+- [ ] Identify all user-facing changes since last release
+```
 
-- **CSP changes** can create XSS vulnerabilities. Always use nonces.
-- **Nonce reuse** defeats the security model. Generate fresh nonce per render.
-- **Always check** `if (currentPanel)` before accessing the webview.
-- **Dispose listeners** when the panel closes to prevent memory leaks.
+### Step 1: Update Version Numbers
+
+**Edit package.json** - update the version field only:
+
+```json
+"version": "X.Y.Z"
+```
+
+**Edit package-lock.json** - update ALL occurrences of version (use search & replace):
+
+```
+"version": "X.Y.Z"
+```
+
+Verify with:
+
+```bash
+grep '"version": "X.Y.Z"' package.json package-lock.json | wc -l
+# Should output: 2 (one from each file)
+```
+
+### Step 2: Update CHANGELOG.md
+
+Add entry at the **very top** (after the header) in this exact format:
+
+```markdown
+## [X.Y.Z] - YYYY-MM-DD
+
+### Added
+- New feature description (if any)
+
+### Changed
+- Enhancement description (if any)
+
+### Fixed
+- Bug fix description (if any)
+```
+
+**Important notes:**
+- Use the actual date (YYYY-MM-DD format)
+- Only include **user-facing changes**
+- Do NOT include: dependency updates (unless security fix), internal refactoring, test improvements, or build process changes
+- Each section (Added/Changed/Fixed) is optional - only include sections with content
+
+### Step 3: Verify Dependencies & Run Tests
+
+```bash
+# Clean install from lock file to ensure exact versions
+rm -rf node_modules
+npm ci
+
+# Run linting
+npm run lint
+
+# Verify no errors
+echo $?  # Should output: 0
+```
+
+### Step 4: Build Package
+
+```bash
+# Build the extension
+npm run build
+
+# Verify files updated
+ls -lh dist/extension.js dist/extension.js.map
+
+# Verify no errors in output
+```
+
+### Step 5: Commit Version Update + CHANGELOG
+
+**Stage only these three files:**
+
+```bash
+git add package.json package-lock.json CHANGELOG.md
+```
+
+**Verify staged files:**
+
+```bash
+git status
+```
+
+**Commit with descriptive message:**
+
+```bash
+git commit -m "chore: bump version to X.Y.Z
+
+- Update package.json version
+- Update package-lock.json version
+- Add CHANGELOG entry for vX.Y.Z"
+```
+
+**Verify commit:**
+
+```bash
+git log -1 --oneline  # Should show your commit
+```
+
+### Step 6: Create Git Tag
+
+**Create annotated tag (required, not lightweight):**
+
+```bash
+git tag -a vX.Y.Z -m "Release version X.Y.Z"
+```
+
+**Verify tag points to correct commit:**
+
+```bash
+git show vX.Y.Z --quiet  # Should show your version bump commit
+```
+
+### Step 7: Push to GitHub
+
+**Push main branch:**
+
+```bash
+git push origin main
+```
+
+**Push tag:**
+
+```bash
+git push origin vX.Y.Z
+```
+
+**Verify both pushed:**
+
+```bash
+git log -1 origin/main --oneline  # Should show your commit
+git ls-remote origin refs/tags/vX.Y.Z  # Should return tag SHA
+```
+
+### Step 8: Publish to VS Code Marketplace
+
+```bash
+# Build one final time (vsce will run this anyway)
+npm run build
+
+# Publish (also builds automatically)
+npm run publish
+```
+
+Wait for confirmation: `DONE  Published KunalPathak.mermaid-slideshow vX.Y.Z.`
+
+If you get version-already-published error, verify package.json has the correct new version.
+
+### Step 9: Verify Release Complete
+
+```bash
+# Check GitHub main updated
+git log origin/main -3 --oneline
+
+# Check GitHub tag exists
+git ls-remote origin refs/tags/vX.Y.Z
+
+# Check marketplace (may take 5-10 minutes to appear)
+# https://marketplace.visualstudio.com/items?itemName=KunalPathak.mermaid-slideshow
+```
+
+### Troubleshooting
+
+**Tag already exists:**
+```bash
+git tag -d vX.Y.Z                      # Delete local
+git push origin :refs/tags/vX.Y.Z      # Delete remote
+git tag -a vX.Y.Z -m "Release vX.Y.Z"  # Recreate
+git push origin vX.Y.Z                 # Push new
+```
+
+**Version already on marketplace:**
+- Verify package.json has NEW version (not old)
+- If correct, marketplace API cached old data; wait 10 minutes and refresh
+
+**Tag points to wrong commit:**
+```bash
+git show vX.Y.Z --quiet | head -3  # Check what tag points to
+git log -1 --oneline               # Check current commit
+# If different: follow "Tag already exists" steps above
+```
+
+## 4. Code Quality Checklist
+
+Before committing any code, verify:
+
+- [ ] **Linting passes:** `npm run lint` returns no errors
+- [ ] **Build succeeds:** `npm run package` creates .vsix without errors
+- [ ] **JSDoc complete:** All exported functions have comprehensive documentation
+- [ ] **No security regressions:** CSP, nonce generation, and state management unchanged (unless intentional)
+- [ ] **Manual testing:** Test in F5 dev host with `examples/test.md`
+- [ ] **No console logs:** Remove debugging statements (unless required for production diagnostics)
+- [ ] **Documentation updated:** If features or architecture changed, update relevant docs (README.md, architecture.md, CHANGELOG.md)
+
+## 5. Common Pitfalls (High-Risk Areas)
+
+These are high-risk areas where mistakes can introduce bugs or security vulnerabilities. Review carefully before making changes.
+
+### Pitfall #1: Modifying Content Security Policy (CSP)
+
+**Problem:** The CSP header controls what scripts can execute in the webview. Loosening it creates XSS vulnerabilities.
+
+**What NOT to do:**
+```javascript
+// BAD: Allows any script to run
+<meta http-equiv="Content-Security-Policy" content="script-src *;">
+
+// BAD: Allows inline scripts without nonces
+<meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline';">
+```
+
+**Safe approach:**
+- Only allow scripts with the correct nonce: `script-src 'nonce-${nonce}'`
+- Only allow trusted CDNs: `https://cdn.jsdelivr.net`
+- **Always** require a security review before changing CSP
+
+### Pitfall #2: Breaking Nonce Generation
+
+**Problem:** The nonce must be cryptographically random and unique per render. Predictable nonces defeat the entire security model.
+
+**What NOT to do:**
+```javascript
+// BAD: Predictable nonce
+function getNonce() {
+	return "fixed-nonce-123";
+}
+
+// BAD: Reusing nonce across renders
+let globalNonce = getNonce();
+function getWebviewContent() {
+	const html = `<script nonce="${globalNonce}">...</script>`;
+}
+```
+
+**Safe approach:**
+- Generate a **new** nonce for every webview HTML render
+- Use a cryptographically strong random source (not `Math.random()` alone for production crypto, but acceptable here given the threat model)
+
+### Pitfall #3: State Management Race Conditions
+
+**Problem:** The extension uses closure variables (`currentPanel`, `currentDocument`) to track state. Mismanaging these can cause crashes or unexpected behavior.
+
+**What NOT to do:**
+```javascript
+// BAD: Not checking if panel exists before using it
+currentPanel.webview.html = newHtml; // Crashes if panel was closed
+
+// BAD: Not disposing listeners
+vscode.workspace.onDidChangeTextDocument(() => { ... }); // Memory leak
+```
+
+**Safe approach:**
+- **Always** check `if (currentPanel)` before accessing
+- **Always** dispose listeners when panel is closed
+- Follow the existing pattern in `extension.js`
+
+### Pitfall #4: Ignoring Documentation Updates
+
+**Problem:** Code changes without documentation updates lead to drift and confusion.
+
+**When to update documentation:**
+- **README.md:** Update if user-facing features or install instructions change
+- **architecture.md:** Update if design patterns or security model changes
+- **development.md:** Update if workflow, tooling, or standards change
+- **CHANGELOG.md:** Update for **every release** with user-facing changes
+
+## 6. Common Issues & Troubleshooting
+
+### Build Fails with "same case insensitive path"
+
+This means duplicate files with different casing exist (e.g., `README.md` and `readme.md`). Git tracks them separately.
+
+**Fix:**
+```bash
+# Remove duplicates (keep lowercase version)
+git rm -f README.md
+git commit -m "fix: remove duplicate file with wrong case"
+```
+
+### VSIX Package Already Exists on Marketplace
+
+If you try to publish an already-published version, vsce will fail. Always:
+1. Increment version in `package.json` first
+2. Create a new git tag for the new version
+
+### GitHub Actions Build Fails
+
+Check the Actions tab on GitHub:
+1. Click the failed workflow
+2. Review the build logs
+3. Common causes:
+   - Lint errors: run `npm run lint` locally and fix
+   - Missing files: ensure all required files are tracked in git
+   - Case sensitivity issues: check for duplicate files
+
+## 7. Release Checklist Summary
+
+Use this before every release:
+
+```
+BEFORE RELEASE:
+- [ ] Create feature branch for changes
+- [ ] Test all features locally (F5 dev host)
+- [ ] Clean install dependencies: `rm -rf node_modules && npm ci`
+- [ ] Run `npm run lint` with no errors
+- [ ] Run `npm run package` with no errors
+- [ ] Merge to main via git merge
+- [ ] Push to origin/main
+- [ ] Wait for GitHub Actions to pass
+- [ ] Verify no uncommitted changes
+
+RELEASE:
+- [ ] Increment version in package.json and package-lock.json
+- [ ] Update CHANGELOG.md with new entry
+- [ ] Commit version update
+- [ ] Create git tag (vX.Y.Z)
+- [ ] Push tag to GitHub
+- [ ] Create GitHub Release
+- [ ] Run `npm run publish`
+- [ ] Verify marketplace shows new version
+- [ ] Verify GitHub releases page shows new release
+
+AFTER RELEASE:
+- [ ] Announce release if applicable
+- [ ] Monitor marketplace for issues
+- [ ] Keep documentation up to date
+```
