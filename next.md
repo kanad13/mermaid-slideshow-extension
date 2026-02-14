@@ -1,0 +1,2 @@
+- multiple markdown preview windows for different files instead of one
+- the markdown preview replicating the theme instead of being a separate theme in itself
