@@ -30,7 +30,7 @@ rm -rf node_modules
 npm ci
 ```
 
-> **`npm ci` vs `npm install`:** Always use `npm ci` for setup and troubleshooting. It installs exact versions from `package-lock.json`, ensuring reproducible builds. Only use `npm install` when intentionally adding or upgrading a dependency — then commit the updated `package-lock.json`.
+> **`npm ci` vs `npm install`:** Always use `npm ci` for setup and troubleshooting. It installs exact versions from `package-lock.json`, ensuring reproducible builds. Only use `npm install` when intentionally adding or upgrading a dependency - then commit the updated `package-lock.json`.
 
 ## 2. Feature Development Workflow
 
@@ -106,7 +106,7 @@ function getNonce() {
 
 ### Dependencies
 
-**Avoid adding new NPM dependencies.** This keeps the extension lightweight. No runtime dependencies — Mermaid is loaded via CDN in the webview. If a new dependency is absolutely necessary:
+**Avoid adding new NPM dependencies.** This keeps the extension lightweight. No runtime dependencies - Mermaid is loaded via CDN in the webview. If a new dependency is absolutely necessary:
 1. Justify the need
 2. Check bundle size impact (`npm run package` and review dist/)
 3. Consider using a CDN instead
@@ -358,9 +358,9 @@ Wait for confirmation: `DONE  Published KunalPathak.mermaid-slideshow vX.Y.Z.`
 
 **Common publish errors:**
 
-- **"version already exists"** — `package.json` still has the old version. Update it.
-- **"authorization failed"** — PAT expired. Create a new one at Azure DevOps and re-run `vsce login KunalPathak`.
-- **"missing publisher"** — Run `vsce login KunalPathak` first.
+- **"version already exists"** - `package.json` still has the old version. Update it.
+- **"authorization failed"** - PAT expired. Create a new one at Azure DevOps and re-run `vsce login KunalPathak`.
+- **"missing publisher"** - Run `vsce login KunalPathak` first.
 
 ### Step 9: Verify Release Complete
 
@@ -424,108 +424,7 @@ Before committing any code, verify:
 - [ ] **No console logs:** Remove debugging statements (unless required for production diagnostics)
 - [ ] **Documentation updated:** If features or architecture changed, update relevant docs (README.md, architecture.md, CHANGELOG.md)
 
-## 5. Common Pitfalls (High-Risk Areas)
-
-These are high-risk areas where mistakes can introduce bugs or security vulnerabilities. Review carefully before making changes.
-
-### Pitfall #1: Modifying Content Security Policy (CSP)
-
-**Problem:** The CSP header controls what scripts can execute in the webview. Loosening it creates XSS vulnerabilities.
-
-**What NOT to do:**
-```javascript
-// BAD: Allows any script to run
-<meta http-equiv="Content-Security-Policy" content="script-src *;">
-
-// BAD: Allows inline scripts without nonces
-<meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline';">
-```
-
-**Safe approach:**
-- Only allow scripts with the correct nonce: `script-src 'nonce-${nonce}'`
-- Only allow trusted CDNs: `https://cdn.jsdelivr.net`
-- **Always** require a security review before changing CSP
-
-### Pitfall #2: Breaking Nonce Generation
-
-**Problem:** The nonce must be cryptographically random and unique per render. Predictable nonces defeat the entire security model.
-
-**What NOT to do:**
-```javascript
-// BAD: Predictable nonce
-function getNonce() {
-	return "fixed-nonce-123";
-}
-
-// BAD: Reusing nonce across renders
-let globalNonce = getNonce();
-function getWebviewContent() {
-	const html = `<script nonce="${globalNonce}">...</script>`;
-}
-```
-
-**Safe approach:**
-- Generate a **new** nonce for every webview HTML render
-- Use a cryptographically strong random source (not `Math.random()` alone for production crypto, but acceptable here given the threat model)
-
-### Pitfall #3: State Management Race Conditions
-
-**Problem:** The extension uses closure variables (`currentPanel`, `currentDocument`) to track state. Mismanaging these can cause crashes or unexpected behavior.
-
-**What NOT to do:**
-```javascript
-// BAD: Not checking if panel exists before using it
-currentPanel.webview.html = newHtml; // Crashes if panel was closed
-
-// BAD: Not disposing listeners
-vscode.workspace.onDidChangeTextDocument(() => { ... }); // Memory leak
-```
-
-**Safe approach:**
-- **Always** check `if (currentPanel)` before accessing
-- **Always** dispose listeners when panel is closed
-- Follow the existing pattern in `extension.js`
-
-### Pitfall #4: Ignoring Documentation Updates
-
-**Problem:** Code changes without documentation updates lead to drift and confusion.
-
-**When to update documentation:**
-- **README.md:** Update if user-facing features or install instructions change
-- **architecture.md:** Update if design patterns or security model changes
-- **development.md:** Update if workflow, tooling, or standards change
-- **CHANGELOG.md:** Update for **every release** with user-facing changes
-
-## 6. Common Issues & Troubleshooting
-
-### Build Fails with "same case insensitive path"
-
-This means duplicate files with different casing exist (e.g., `README.md` and `readme.md`). Git tracks them separately.
-
-**Fix:**
-```bash
-# Remove duplicates (keep lowercase version)
-git rm -f README.md
-git commit -m "fix: remove duplicate file with wrong case"
-```
-
-### VSIX Package Already Exists on Marketplace
-
-If you try to publish an already-published version, vsce will fail. Always:
-1. Increment version in `package.json` first
-2. Create a new git tag for the new version
-
-### GitHub Actions Build Fails
-
-Check the Actions tab on GitHub:
-1. Click the failed workflow
-2. Review the build logs
-3. Common causes:
-   - Lint errors: run `npm run lint` locally and fix
-   - Missing files: ensure all required files are tracked in git
-   - Case sensitivity issues: check for duplicate files
-
-## 7. Release Checklist Summary
+## 5. Release Checklist Summary
 
 Use this before every release:
 

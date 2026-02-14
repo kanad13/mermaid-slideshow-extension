@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Mermaid diagram extraction from markdown files (both backtick and Azure DevOps triple-colon syntax)
-- Slideshow presentation in a side panel — one diagram per slide, centered
+- Slideshow presentation in a side panel - one diagram per slide, centered
 - Keyboard navigation (arrow keys) and mouse scroll navigation between slides
 - Clickable navigation arrows
 - Slide counter overlay

@@ -1,16 +1,16 @@
 # Mermaid Slideshow
 
-A VS Code extension that extracts Mermaid diagrams from markdown files and presents them as a navigable slideshow.
+A VS Code extension that turns Mermaid diagrams into a distraction-free slideshow. Each diagram gets its own full-panel slide - no surrounding markdown, no tiny inline renders, no clutter. Navigate with arrow keys like a presentation deck, and see changes live as you edit.
 
 ## Why This Extension?
 
-- **Focused:** Shows only Mermaid diagrams — no markdown rendering clutter
-- **Slideshow:** One diagram per slide, full-panel, centered
-- **Navigate:** Arrow keys, mouse scroll, or click the nav arrows
-- **Live Updates:** Edit your markdown and the preview updates instantly
-- **Universal Mermaid:** Supports both GitHub-style (```) and Azure DevOps-style (:::) syntax
-- **Secure:** Content Security Policy with nonce-based script execution
-- **Zero Configuration:** Install and use. No settings, no plugins.
+VS Code's built-in markdown preview renders diagrams inline alongside text - small, non-interactive, and buried in content. Mermaid Slideshow pulls your diagrams out and presents each one full-screen, so you can actually read them.
+
+- **Review architecture docs** - step through complex diagrams one at a time without scrolling past walls of text
+- **Present in meetings** - navigate with arrow keys or mouse scroll like a slide deck, right inside VS Code
+- **Iterate on diagrams** - live preview updates instantly as you edit the source, keeping you in flow
+- **Both syntaxes supported** - GitHub-style (```) and Azure DevOps-style (:::) Mermaid blocks
+- **Secure** - Content Security Policy with nonce-based script execution, no user HTML passthrough
 
 ## Install
 
@@ -30,6 +30,23 @@ A VS Code extension that extracts Mermaid diagrams from markdown files and prese
    - Click the `‹` `›` navigation arrows
 
 The slide counter in the bottom-right shows your position (e.g., "2 / 5").
+
+## Configuration
+
+Open VS Code Settings (`Cmd+,` on macOS, `Ctrl+,` on Windows/Linux) and search for **"Mermaid Slideshow"**.
+
+| Setting | Options | Default | Description |
+|---|---|---|---|
+| `mermaidSlideshow.theme` | `default`, `dark`, `forest`, `neutral` | `default` | Color theme for rendered diagrams |
+
+**Themes:**
+
+- **default** - Clean and simple
+- **dark** - Dark background with light text, matches dark VS Code themes
+- **forest** - Green-toned, nature-inspired palette
+- **neutral** - Grayscale, high-contrast, print-friendly
+
+Changing the theme takes effect immediately on the open slideshow.
 
 ## Supported Syntax
 
@@ -55,6 +72,6 @@ Both syntaxes are extracted and rendered identically.
 
 ## For Developers
 
-- [architecture.md](docs/architecture.md) — Design decisions and security model
-- [development.md](docs/development.md) — Setup, workflow, and release process
-- [CHANGELOG.md](CHANGELOG.md) — Version history
+- [architecture.md](docs/architecture.md) - Design decisions and security model
+- [development.md](docs/development.md) - Setup, workflow, and release process
+- [CHANGELOG.md](CHANGELOG.md) - Version history

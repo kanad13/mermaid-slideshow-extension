@@ -1,11 +1,11 @@
-# Mermaid Slideshow — VS Code Extension
+# Mermaid Slideshow - VS Code Extension
 
 ## Key Context
 
-This extension extracts Mermaid diagrams from markdown files and displays them as a navigable slideshow in a VS Code webview panel. Package name: `mermaid-slideshow`, command prefix: `mermaidSlideshow`.
+This extension presents Mermaid diagrams from markdown files as a focused, full-panel slideshow in a VS Code webview. Each diagram gets its own slide with keyboard/mouse navigation and live updates on edit. Package name: `mermaid-slideshow`, command prefix: `mermaidSlideshow`.
 
 - Single source file: `src/extension.js`
-- No runtime dependencies — Mermaid loaded via CDN in webview
+- No runtime dependencies - Mermaid loaded via CDN in webview
 - Closure-based state (no classes, no globals)
 - CSP nonce security on all webview renders
 
@@ -22,7 +22,7 @@ This extension extracts Mermaid diagrams from markdown files and displays them a
 - Tabs, double quotes, semicolons, Unix line endings
 - ES2020, CommonJS (`require`/`module.exports`)
 - JSDoc on all exported/public functions
-- No TODO comments in code — track in issues
+- No TODO comments in code - track in issues
 
 ## Git Commits
 

@@ -7,7 +7,7 @@ const vscode = require("vscode");
  * - Backtick style: ```mermaid ... ```
  * - Azure DevOps / Fenced Div style: ::: mermaid ... :::
  *
- * Operates on raw text via regex — no markdown parsing required.
+ * Operates on raw text via regex - no markdown parsing required.
  *
  * @param {string} rawText - Raw markdown file content
  * @returns {string[]} Array of Mermaid diagram code strings (trimmed)
@@ -59,9 +59,10 @@ function getNonce() {
  *
  * @param {string[]} diagrams - Array of Mermaid diagram code strings
  * @param {string} nonce - CSP nonce token
+ * @param {string} theme - Mermaid theme name (default, dark, forest, neutral)
  * @returns {string} Complete HTML page
  */
-function getWebviewContent(diagrams, nonce) {
+function getWebviewContent(diagrams, nonce, theme) {
 	if (diagrams.length === 0) {
 		return `<!DOCTYPE html>
 <html lang="en">
@@ -222,7 +223,7 @@ function getWebviewContent(diagrams, nonce) {
 
 		mermaid.initialize({
 			startOnLoad: false,
-			theme: 'default',
+			theme: '${theme}',
 			securityLevel: 'loose'
 		});
 
@@ -333,7 +334,7 @@ function postDiagramUpdate(panel, diagrams) {
 }
 
 /**
- * Activation function — called when the extension loads.
+ * Activation function - called when the extension loads.
  *
  * Registers the "Show Mermaid Slideshow Preview" command and manages
  * a single webview panel that displays Mermaid diagrams as a slideshow.
@@ -362,6 +363,7 @@ function activate(context) {
 			}
 
 			const diagrams = extractMermaidBlocks(doc.getText());
+			const theme = vscode.workspace.getConfiguration("mermaidSlideshow").get("theme", "default");
 
 			if (currentPanel) {
 				currentPanel.reveal(vscode.ViewColumn.Beside);
@@ -381,7 +383,7 @@ function activate(context) {
 				);
 
 				currentDocument = doc;
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce);
+				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
 
 				currentPanel.onDidDispose(
 					() => {
@@ -409,8 +411,25 @@ function activate(context) {
 		}
 	);
 
+	// Re-render webview when theme configuration changes
+	const changeConfigSubscription = vscode.workspace.onDidChangeConfiguration(
+		(e) => {
+			if (
+				e.affectsConfiguration("mermaidSlideshow.theme") &&
+				currentPanel &&
+				currentDocument
+			) {
+				const theme = vscode.workspace.getConfiguration("mermaidSlideshow").get("theme", "default");
+				const nonce = getNonce();
+				const diagrams = extractMermaidBlocks(currentDocument.getText());
+				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+			}
+		}
+	);
+
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(changeDocumentSubscription);
+	context.subscriptions.push(changeConfigSubscription);
 }
 
 function deactivate() {}
