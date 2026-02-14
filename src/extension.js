@@ -54,6 +54,25 @@ function getNonce() {
 }
 
 /**
+ * Resolves the effective Mermaid theme based on user setting and VS Code color theme.
+ *
+ * When the user setting is "default", auto-detects VS Code's color theme kind
+ * and returns "dark" for dark/high-contrast themes, "default" for light themes.
+ * Explicit user choices (dark, forest, neutral) are returned as-is.
+ *
+ * @returns {string} Resolved Mermaid theme name
+ */
+function resolveTheme() {
+	const setting = vscode.workspace.getConfiguration("mermaidSlideshow").get("theme", "default");
+	if (setting !== "default") {
+		return setting;
+	}
+	const kind = vscode.window.activeColorTheme.kind;
+	const isDark = kind === vscode.ColorThemeKind.Dark || kind === vscode.ColorThemeKind.HighContrast;
+	return isDark ? "dark" : "default";
+}
+
+/**
  * Generates the slideshow webview HTML from a template file.
  *
  * Reads src/webview.html and replaces placeholder tokens with runtime values.
@@ -152,7 +171,7 @@ function activate(context) {
 			}
 
 			const diagrams = extractMermaidBlocks(doc.getText());
-			const theme = vscode.workspace.getConfiguration("mermaidSlideshow").get("theme", "default");
+			const theme = resolveTheme();
 			const nonce = getNonce();
 
 			if (currentPanel) {
@@ -207,7 +226,19 @@ function activate(context) {
 				currentPanel &&
 				currentDocument
 			) {
-				const theme = vscode.workspace.getConfiguration("mermaidSlideshow").get("theme", "default");
+				const theme = resolveTheme();
+				const nonce = getNonce();
+				const diagrams = extractMermaidBlocks(currentDocument.getText());
+				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+			}
+		}
+	);
+
+	// Re-render when VS Code color theme changes (affects auto-detected Mermaid theme)
+	const changeColorThemeSubscription = vscode.window.onDidChangeActiveColorTheme(
+		() => {
+			if (currentPanel && currentDocument) {
+				const theme = resolveTheme();
 				const nonce = getNonce();
 				const diagrams = extractMermaidBlocks(currentDocument.getText());
 				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
@@ -218,6 +249,7 @@ function activate(context) {
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(changeDocumentSubscription);
 	context.subscriptions.push(changeConfigSubscription);
+	context.subscriptions.push(changeColorThemeSubscription);
 }
 
 function deactivate() {}

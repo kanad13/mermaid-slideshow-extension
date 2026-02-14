@@ -71,12 +71,12 @@
 						"neutral"
 					],
 					"enumDescriptions": [
-						"Clean and simple (default)",
-						"Dark background, light text - matches dark VS Code themes",
+						"Auto-detect from VS Code theme (uses dark for dark/high-contrast themes)",
+						"Dark background, light text",
 						"Green-toned, nature-inspired palette",
 						"Grayscale, high-contrast, print-friendly"
 					],
-					"description": "Color theme for rendered Mermaid diagrams."
+					"description": "Color theme for rendered Mermaid diagrams. When set to 'default', automatically matches your VS Code color theme."
 				}
 			}
 		}

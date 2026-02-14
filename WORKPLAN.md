@@ -71,8 +71,13 @@ Notes:
 - [ ] 3.4 Add debounce (300ms) to `onDidChangeTextDocument` handler
 - [ ] 3.5 Remove `retainContextWhenHidden: true` from panel options
 - [ ] 3.6 Fix panel reuse: when `reveal()` is called on existing panel, also check if theme changed and do full HTML replacement if needed
-- [ ] 3.7 Run `npm run lint` to verify
-- [ ] 3.8 Commit, build `.vsix`, await testing
+- [x] 3.7 Run `npm run lint` to verify
+- [x] 3.8 Commit, build `.vsix`, await testing
+- [ ] 3.9 Auto-detect VS Code color theme kind for Mermaid theme
+      - Add `resolveTheme()` helper: if user setting is `"default"`, map dark/high-contrast VS Code themes to Mermaid `"dark"`
+      - Listen for `onDidChangeActiveColorTheme` to re-render when VS Code theme switches
+      - Update `mermaidSlideshow.theme` enum to add `"auto"` option or document `"default"` behavior
+- [ ] 3.10 Run `npm run lint`, commit, build `.vsix`, await testing
 
 ---
 
