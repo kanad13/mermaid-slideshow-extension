@@ -1,94 +1,67 @@
-# What makes this Markdown Preview Extension special?
+# Mermaid Slides Test File
 
-- **Supports:** Markdown, Mermaid, Mathjax, Images, Code syntax highlighting, Table of Contents
-- **Specialty:** Extremely lightweight and fast, no bloatware, easy to use
+This file contains 5 Mermaid diagrams for testing the slideshow preview.
 
-$$
-\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
-$$
-
+## Diagram 1: Flowchart
 
 ```mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Action 1]
+    B -->|No| D[Action 2]
+    C --> E[End]
+    D --> E
 ```
 
-
-## Live Preview Supported
-
-- Nested lists:
-  - Item 1
-    - Subitem 1.1
-    - Subitem 1.2
-  - Item 2
-- Numbered lists:
-  1. First item
-  2. Second item
-  3. Third item
-
----
-
-## Links
-
-- Link to example.com: [Example](https://www.example.com)
-
----
-
-## Images
-
-![Sample Image](https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Comatricha_nigra_176600092.jpg/330px-Comatricha_nigra_176600092.jpg)
-
----
-
-## Text formatting
-
-- Bold text: **bold**
-- Italic text: _italic_
-- Strikethrough text: ~~strikethrough~~
-- Blockquote: > This is a blockquote.
-- Python code block:
-
-```python
-print("Hello, World!")
-```
-
-- Markdown table
-
-| Header 1 | Header 2 | Header 3 |
-| -------- | -------- | -------- |
-| Row 1    | Row 1    | Row 1    |
-| Row 2    | Row 2    | Row 2    |
-| Row 3    | Row 3    | Row 3    |
-
----
-
-## Mermaid diagram (GitHub style)
+## Diagram 2: Sequence Diagram
 
 ```mermaid
-graph TD;
-    A-->B;
-    A-->C;
-    B-->D;
-    C-->D;
+sequenceDiagram
+    participant User
+    participant Extension
+    participant Webview
+    User->>Extension: Click Preview
+    Extension->>Extension: Extract Mermaid blocks
+    Extension->>Webview: Send diagrams
+    Webview->>Webview: Render slide
+    User->>Webview: Arrow key / scroll
+    Webview->>Webview: Next slide
 ```
 
-## Mermaid diagram (Azure DevOps style)
+## Diagram 3: State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Previewing: Open preview
+    Previewing --> Navigating: Arrow key
+    Navigating --> Previewing: Render slide
+    Previewing --> Idle: Close panel
+```
+
+## Diagram 4: Pie Chart
+
+```mermaid
+pie title Extension Code Composition
+    "Extraction" : 15
+    "Webview HTML/CSS" : 40
+    "Navigation JS" : 30
+    "VS Code API" : 15
+```
+
+## Diagram 5: Azure DevOps Syntax
 
 ::: mermaid
-sequenceDiagram
-    Alice->>Bob: Hello Bob
-    Bob-->>Alice: Hi Alice
+graph LR
+    A[Markdown File] --> B[Extract Blocks]
+    B --> C[Slideshow]
+    C --> D[Navigate]
 :::
 
-## Mathematical expressions
+## Non-Mermaid Content
 
-- Inline Mathematical Expression Not supported right now - $E = mc^2$
+This paragraph and the code block below should be ignored by the extraction engine.
 
-- Block Mathematical Expression Supported:
-
-$$
-\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
-$$
+```javascript
+console.log("This is not a mermaid diagram");
+```
