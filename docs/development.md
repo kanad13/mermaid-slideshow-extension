@@ -157,6 +157,42 @@ After pushing, verify that:
 
 Follow these steps precisely in order. Each step is required and builds on the previous one. Replace `X.Y.Z` with your actual version number throughout.
 
+### Prerequisites: vsce & GitHub CLI Authentication
+
+Publishing requires authentication with both the VS Code Marketplace and GitHub.
+
+**VS Code Marketplace (vsce):**
+
+```bash
+# Install vsce globally (or use npx)
+npm install -g @vscode/vsce
+
+# Login with your Personal Access Token (PAT)
+# Create a PAT at https://dev.azure.com/<org>/_usersSettings/tokens
+# Required scopes: Marketplace > Manage
+vsce login KunalPathak
+
+# Verify login
+vsce ls-publishers
+```
+
+If your PAT expires, re-login with `vsce login KunalPathak` and provide a fresh token.
+
+**GitHub CLI (gh):**
+
+```bash
+# Install (macOS)
+brew install gh
+
+# Authenticate
+gh auth login
+
+# Verify
+gh auth status
+```
+
+The `gh` CLI is used for creating GitHub releases. Git push uses standard git credentials (HTTPS or SSH).
+
 ### Pre-Release Checklist
 
 Before starting:
@@ -167,6 +203,7 @@ Before starting:
 - [ ] `git status` shows no uncommitted changes
 - [ ] Decide version bump (MAJOR.MINOR.PATCH per semantic versioning)
 - [ ] Identify all user-facing changes since last release
+- [ ] `vsce login` is authenticated (run `vsce ls-publishers` to verify)
 ```
 
 ### Step 1: Update Version Numbers
@@ -307,16 +344,23 @@ git ls-remote origin refs/tags/vX.Y.Z  # Should return tag SHA
 ### Step 8: Publish to VS Code Marketplace
 
 ```bash
-# Build one final time (vsce will run this anyway)
-npm run build
+# Verify vsce is authenticated
+vsce ls-publishers
 
-# Publish (also builds automatically)
+# If not logged in:
+vsce login KunalPathak
+
+# Publish (builds and uploads in one step)
 npm run publish
 ```
 
 Wait for confirmation: `DONE  Published KunalPathak.mermaid-slideshow vX.Y.Z.`
 
-If you get version-already-published error, verify package.json has the correct new version.
+**Common publish errors:**
+
+- **"version already exists"** — `package.json` still has the old version. Update it.
+- **"authorization failed"** — PAT expired. Create a new one at Azure DevOps and re-run `vsce login KunalPathak`.
+- **"missing publisher"** — Run `vsce login KunalPathak` first.
 
 ### Step 9: Verify Release Complete
 
@@ -350,6 +394,22 @@ git push origin vX.Y.Z                 # Push new
 git show vX.Y.Z --quiet | head -3  # Check what tag points to
 git log -1 --oneline               # Check current commit
 # If different: follow "Tag already exists" steps above
+```
+
+**vsce PAT expired:**
+```bash
+# 1. Go to https://dev.azure.com/<org>/_usersSettings/tokens
+# 2. Create new token with Marketplace > Manage scope
+# 3. Re-authenticate:
+vsce login KunalPathak
+# Paste new PAT when prompted
+```
+
+**gh CLI not authenticated:**
+```bash
+gh auth login
+# Follow prompts to authenticate via browser or token
+gh auth status  # Verify
 ```
 
 ## 4. Code Quality Checklist
@@ -480,6 +540,8 @@ BEFORE RELEASE:
 - [ ] Push to origin/main
 - [ ] Wait for GitHub Actions to pass
 - [ ] Verify no uncommitted changes
+- [ ] Verify `vsce login` is authenticated (`vsce ls-publishers`)
+- [ ] Verify `gh auth status` is authenticated
 
 RELEASE:
 - [ ] Increment version in package.json and package-lock.json
