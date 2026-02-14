@@ -1,22 +1,35 @@
 # Mermaid Slideshow — VS Code Extension
 
-## Before Starting Any Work
+## Key Context
 
-1. Read `.dev/PLAN.md` — understand the objective, find current progress, identify the next incomplete phase
-2. Read `.dev/CONVENTIONS.md` — follow all rules exactly
-3. Read `src/extension.js` — understand current state of the code
-4. Pick up from the first unchecked task in the current phase. Do not skip phases.
+This extension extracts Mermaid diagrams from markdown files and displays them as a navigable slideshow in a VS Code webview panel. Package name: `mermaid-slideshow`, command prefix: `mermaidSlideshow`.
 
-## After Completing Work
+- Single source file: `src/extension.js`
+- No runtime dependencies — Mermaid loaded via CDN in webview
+- Closure-based state (no classes, no globals)
+- CSP nonce security on all webview renders
 
-1. Update checkboxes in `.dev/PLAN.md` for completed tasks
-2. If a phase is fully complete, note it and inform the user about the user milestone test needed
-3. Run `npm run lint` before declaring any phase done
+## Architecture Rules
+
+- All extension logic in `src/extension.js` unless it exceeds ~1500 lines
+- Single webview panel, reused across files
+- No TypeScript, no frameworks, no bundled webview scripts
+- Mermaid CDN: `https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs`
+- Two extraction syntaxes: backtick (```) and Azure DevOps (:::)
+
+## Code Style (enforced by ESLint)
+
+- Tabs, double quotes, semicolons, Unix line endings
+- ES2020, CommonJS (`require`/`module.exports`)
+- JSDoc on all exported/public functions
+- No TODO comments in code — track in issues
 
 ## Git Commits
 
-Make commits at meaningful intervals — typically after completing each task or a logical group of related tasks within a phase. Do not batch an entire phase into one commit. Commit messages should be concise, imperative mood, and describe *what changed* (e.g., "Strip marked dependency and old markdown parsing pipeline"). Always commit before moving to a new phase.
+Concise, imperative mood. Describe *what changed*. Commit at meaningful intervals.
 
-## Key Context
+## Testing
 
-This extension extracts Mermaid diagrams from markdown files and displays them as a slideshow in a VS Code webview panel. Package name: `mermaid-slideshow`, command prefix: `mermaidSlideshow`. It was built by transforming an existing markdown preview extension. The Mermaid extraction logic from the original codebase is the foundation — do not rewrite it without cause.
+- Manual testing via F5 debug launch
+- Test file at `examples/test.md` with diverse Mermaid diagram types
+- `npm run lint` must pass before any work is considered complete

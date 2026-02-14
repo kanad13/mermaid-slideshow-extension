@@ -21,25 +21,6 @@ const config = {
 	},
 	resolve: {
 		extensions: [".js"],
-		fallback: {
-			"fs": false,
-			"path": false,
-			"util": false,
-		}
-	},
-	module: {
-		rules: [
-			{
-				test: /\.js$/,
-				exclude: /node_modules/,
-				use: {
-					loader: "babel-loader",
-					options: {
-						presets: ["@babel/preset-env"]
-					}
-				}
-			}
-		]
 	},
 	devtool: "nosources-source-map",
 	infrastructureLogging: {

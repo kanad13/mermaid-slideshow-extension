@@ -1,4 +1,0 @@
-- Slide overview panel (thumbnail grid of all diagrams)
-- Slide numbering overlay
-- Theme matching (preview mirrors VS Code's current theme)
-- Export slides as images
