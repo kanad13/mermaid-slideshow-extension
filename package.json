@@ -1,14 +1,14 @@
 {
-	"name": "lightweight-markdown-preview",
-	"displayName": "Lightweight Markdown Preview",
-	"description": "Lightweight, privacy-friendly Markdown preview with Mermaid diagrams and MathJax equations. No bloat, no tracking.",
-	"version": "1.2.0",
+	"name": "mermaid-slides-preview",
+	"displayName": "Mermaid Slides Preview",
+	"description": "Extract Mermaid diagrams from markdown files and preview them as a navigable slideshow.",
+	"version": "0.1.0",
 	"icon": "assets/icon.png",
 	"publisher": "KunalPathak",
 	"author": "Kunal Pathak",
-	"homepage": "https://github.com/kanad13/lightweight-markdown-preview",
+	"homepage": "https://github.com/kanad13/mermaid-slides-preview",
 	"bugs": {
-		"url": "https://github.com/kanad13/lightweight-markdown-preview/issues"
+		"url": "https://github.com/kanad13/mermaid-slides-preview/issues"
 	},
 	"engines": {
 		"vscode": "^1.85.0",
@@ -16,50 +16,41 @@
 	},
 	"categories": [
 		"Other",
-		"Formatters"
+		"Visualization"
 	],
 	"keywords": [
-		"markdown",
-		"preview",
-		"md",
 		"mermaid",
-		"mathjax",
+		"slides",
+		"preview",
 		"diagrams",
-		"equations",
-		"viewer",
-		"live-preview",
-		"lightweight",
-		"privacy",
-		"render",
-		"documentation",
-		"chart",
-		"flowchart"
+		"slideshow",
+		"flowchart",
+		"sequence diagram",
+		"markdown",
+		"presentation"
 	],
 	"qna": "marketplace",
 	"galleryBanner": {
 		"color": "#0D47A1",
 		"theme": "dark"
 	},
-	"activationEvents": [
-		"onCommand:lightweightMarkdownViewer.showPreview"
-	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "lightweightMarkdownViewer.showPreview",
-				"title": "Show Lightweight Markdown Preview",
-				"category": "Markdown",
+				"command": "mermaidSlides.showPreview",
+				"title": "Show Mermaid Slides Preview",
+				"category": "Mermaid",
 				"icon": {
-					"light": "assets/icon-eye.svg",
-					"dark": "assets/icon-eye.svg"
+					"light": "assets/icon-presentation.svg",
+					"dark": "assets/icon-presentation.svg"
 				}
 			}
 		],
 		"menus": {
 			"editor/title": [
 				{
-					"command": "lightweightMarkdownViewer.showPreview",
+					"command": "mermaidSlides.showPreview",
 					"when": "resourceLangId == markdown",
 					"group": "navigation"
 				}
@@ -73,9 +64,7 @@
 		"package": "npm run build && vsce package",
 		"publish": "npm run build && vsce publish"
 	},
-	"dependencies": {
-		"marked": "^16.4.1"
-	},
+	"dependencies": {},
 	"devDependencies": {
 		"@babel/core": "^7.25.0",
 		"@babel/preset-env": "^7.25.0",
@@ -90,7 +79,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/kanad13/lightweight-markdown-preview.git"
+		"url": "https://github.com/kanad13/mermaid-slides-preview.git"
 	},
 	"license": "MIT",
 	"pricing": "Free"
