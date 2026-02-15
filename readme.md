@@ -1,6 +1,10 @@
 # Mermaid Slideshow
 
-A VS Code extension that turns Mermaid diagrams into a distraction-free slideshow. Each diagram gets its own full-panel slide - no surrounding markdown, no tiny inline renders, no clutter. Navigate with arrow keys like a presentation deck, and see changes live as you edit.
+A VS Code extension that turns Mermaid diagrams into a distraction-free slideshow.
+
+Each diagram gets its own full-panel slide - no surrounding markdown, no tiny inline renders, no clutter.
+
+![](/assets/present.gif)
 
 ## Why This Extension?
 

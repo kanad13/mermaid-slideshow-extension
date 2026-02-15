@@ -1,8 +1,33 @@
-# Mermaid Slideshow Test File
+# Mermaid Slideshow
 
 This file contains diverse Mermaid diagram types for testing slideshow rendering and navigation.
 
+## About This Extension
+
+- Markdown preview extensions show your whole file.
+
+- But what if you want to focus just on the Mermaid diagrams?
+
+- Mermaid Slideshow (this extension) presents every diagram from your markdown file.
+
+- Make a presentation directly from your markdown notes. No extra setup, no exports.
+
+- One diagram at a time. As a slideshow.
+
+- Extremely lightweight and works with all Mermaid syntax.
+
+- Works with all native Mermaid themes.
+
+- Supports VSCode Dark and Light themes.
+
+- Use the Zen Mode for distraction-free presenting.
+
+
 ## Diagram 1: Flowchart
+
+- The diagram below shows a simple flowchart with decision points and actions.
+- Note that this text will not appear in the slideshow; only the diagram will be presented.
+- This means you can have the same markdown file for both detailed editing and focused presenting, without needing to maintain separate files.
 
 ```mermaid
 graph TD
@@ -12,6 +37,8 @@ graph TD
     C --> E[End]
     D --> E
 ```
+
+- The test block below the Mermaid code block ensures that the slideshow correctly identifies and presents only the Mermaid code blocks, ignoring regular text and other surrounding content.
 
 ## Diagram 2: Sequence Diagram
 
@@ -26,6 +53,8 @@ sequenceDiagram
     Charlie-->>Bob: Sure thing
     Charlie->>Alice: All sorted
 ```
+
+- This is another block of text to confirm that only Mermaid diagrams are presented in the slideshow.
 
 ## Diagram 3: State Diagram
 
@@ -51,11 +80,13 @@ pie title Project Languages
 
 ## Diagram 5: Azure DevOps Syntax
 
+- Mermaid also supports Azure DevOps syntax for diagrams, which is a common use case for many users.
+
 ::: mermaid
 graph LR
-    A[Markdown File] --> B[Extract Blocks]
-    B --> C[Slideshow]
-    C --> D[Navigate]
+A[Markdown File] --> B[Extract Blocks]
+B --> C[Slideshow]
+C --> D[Navigate]
 :::
 
 ## Diagram 6: Class Diagram
