@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.3] - 2026-02-15
+
+### Changed
+- Repository moved to [mermaid-slideshow-extension](https://github.com/kanad13/mermaid-slideshow-extension) for clarity (separate from the mermaid-slideshow web app)
+
 ## [1.1.2] - 2026-02-15
 
 ### Fixed
