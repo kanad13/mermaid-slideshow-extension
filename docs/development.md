@@ -313,7 +313,16 @@ git log -1 origin/main --oneline
 git ls-remote origin refs/tags/vX.Y.Z
 ```
 
-### Step 8: Publish to Marketplace
+### Step 8: Create GitHub Release
+
+```bash
+# Create release with .vsix artifact attached
+gh release create vX.Y.Z mermaid-slideshow-X.Y.Z.vsix --title "vX.Y.Z" --notes "Release notes here"
+```
+
+Verify at: https://github.com/kanad13/mermaid-slideshow-extension/releases
+
+### Step 9: Publish to Marketplace
 
 ```bash
 # Verify authentication
@@ -327,7 +336,7 @@ npm run publish
 
 Wait for confirmation: `DONE  Published KunalPathak.mermaid-slideshow vX.Y.Z.`
 
-### Step 9: Verify Release Complete
+### Step 10: Verify Release Complete
 
 ```bash
 # Check main branch updated
@@ -440,6 +449,7 @@ Use this checklist before every commit and release.
 - [ ] Push main: `git push origin main`
 - [ ] Push tag: `git push origin vX.Y.Z`
 - [ ] Verify tag pushed: `git ls-remote origin refs/tags/vX.Y.Z`
+- [ ] Create GitHub Release with .vsix: `gh release create vX.Y.Z mermaid-slideshow-X.Y.Z.vsix`
 - [ ] Publish: `npm run publish`
 - [ ] Verify marketplace shows new version (5-10 min delay)
 
