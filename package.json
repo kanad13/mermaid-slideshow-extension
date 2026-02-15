@@ -6,9 +6,9 @@
 	"icon": "assets/icon.png",
 	"publisher": "KunalPathak",
 	"author": "Kunal Pathak",
-	"homepage": "https://github.com/kanad13/mermaid-slideshow",
+	"homepage": "https://github.com/kanad13/mermaid-slideshow-extension",
 	"bugs": {
-		"url": "https://github.com/kanad13/mermaid-slideshow/issues"
+		"url": "https://github.com/kanad13/mermaid-slideshow-extension/issues"
 	},
 	"engines": {
 		"vscode": "^1.109.0",
@@ -96,7 +96,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/kanad13/mermaid-slideshow.git"
+		"url": "https://github.com/kanad13/mermaid-slideshow-extension.git"
 	},
 	"license": "MIT",
 	"pricing": "Free"

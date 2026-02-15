@@ -43,8 +43,8 @@ gh auth status  # Verify
 
 ```bash
 # Clone the repository
-git clone https://github.com/kanad13/mermaid-slideshow.git
-cd mermaid-slideshow
+git clone https://github.com/kanad13/mermaid-slideshow-extension.git
+cd mermaid-slideshow-extension
 
 # Install dependencies from lock file (reproducible builds)
 npm ci
