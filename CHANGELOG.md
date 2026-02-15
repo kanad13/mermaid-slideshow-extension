@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1] - 2026-02-15
+
+### Changed
+- Reduced package size from 3.74 MB to 57 KB by excluding demo GIF from distribution (still visible on GitHub)
+
 ## [1.1.0] - 2026-02-15
 
 ### Added
