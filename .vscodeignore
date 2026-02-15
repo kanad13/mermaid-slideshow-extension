@@ -9,10 +9,10 @@
 *.log
 docs/
 examples/
+test/
 node_modules/
 jsconfig.json
 eslint.config.js
-webpack.config.js
-src/
 CLAUDE.md
+WORKPLAN.md
 next.md

@@ -1,4 +1,6 @@
 const vscode = require("vscode");
+const fs = require("fs");
+const path = require("path");
 
 /**
  * Extracts Mermaid diagram code blocks from raw markdown text.
@@ -52,10 +54,29 @@ function getNonce() {
 }
 
 /**
- * Generates the slideshow webview HTML.
+ * Resolves the effective Mermaid theme based on user setting and VS Code color theme.
  *
- * Renders one Mermaid diagram at a time, centered in the panel.
- * Navigation via arrow keys and mouse scroll. Slide counter overlay.
+ * When the user setting is "default", auto-detects VS Code's color theme kind
+ * and returns "dark" for dark/high-contrast themes, "default" for light themes.
+ * Explicit user choices (dark, forest, neutral) are returned as-is.
+ *
+ * @returns {string} Resolved Mermaid theme name
+ */
+function resolveTheme() {
+	const setting = vscode.workspace.getConfiguration("mermaidSlideshow").get("theme", "default");
+	if (setting !== "default") {
+		return setting;
+	}
+	const kind = vscode.window.activeColorTheme.kind;
+	const isDark = kind === vscode.ColorThemeKind.Dark || kind === vscode.ColorThemeKind.HighContrast;
+	return isDark ? "dark" : "default";
+}
+
+/**
+ * Generates the slideshow webview HTML from a template file.
+ *
+ * Reads src/webview.html and replaces placeholder tokens with runtime values.
+ * Returns an empty-state page when no diagrams are found.
  *
  * @param {string[]} diagrams - Array of Mermaid diagram code strings
  * @param {string} nonce - CSP nonce token
@@ -69,7 +90,7 @@ function getWebviewContent(diagrams, nonce, theme) {
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline';">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">
 	<title>Mermaid Slideshow</title>
 	<style>
 		body {
@@ -79,8 +100,8 @@ function getWebviewContent(diagrams, nonce, theme) {
 			height: 100vh;
 			margin: 0;
 			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-			color: #666;
-			background: #fff;
+			color: var(--vscode-descriptionForeground);
+			background: var(--vscode-editor-background);
 		}
 		.empty { text-align: center; }
 		.empty p { font-size: 1.1em; margin: 8px 0; }
@@ -89,235 +110,21 @@ function getWebviewContent(diagrams, nonce, theme) {
 <body>
 	<div class="empty">
 		<p>No Mermaid diagrams found in this file.</p>
-		<p style="font-size: 0.85em; color: #999;">Add a \`\`\`mermaid code block to get started.</p>
+		<p style="font-size: 0.85em;">Add a \`\`\`mermaid code block to get started.</p>
 	</div>
 </body>
 </html>`;
 	}
 
-	// Serialize diagrams as JSON for the client-side script
-	const diagramsJson = JSON.stringify(diagrams);
+	const templatePath = path.join(__dirname, "webview.html");
+	let html = fs.readFileSync(templatePath, "utf8");
 
-	return `<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' https://cdn.jsdelivr.net; style-src 'unsafe-inline';">
-	<title>Mermaid Slideshow</title>
-	<style>
-		* { box-sizing: border-box; margin: 0; padding: 0; }
+	html = html.replace(/\{\{NONCE\}\}/g, nonce);
+	html = html.replace("{{THEME}}", theme);
+	html = html.replace("{{DIAGRAMS_JSON}}", JSON.stringify(diagrams));
+	html = html.replace("{{SINGLE_SLIDE_CLASS}}", diagrams.length === 1 ? "single-slide" : "");
 
-		body {
-			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-			background: #fff;
-			height: 100vh;
-			overflow: hidden;
-			user-select: none;
-		}
-
-		.slide-container {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			height: 100vh;
-			padding: 40px 60px;
-			position: relative;
-		}
-
-		.slide-content {
-			width: 100%;
-			max-height: calc(100vh - 120px);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			overflow: auto;
-		}
-
-		.slide-content .mermaid {
-			background: transparent;
-			border: none;
-			text-align: center;
-			width: 100%;
-		}
-
-		.slide-content .mermaid svg {
-			max-width: 100%;
-			max-height: calc(100vh - 140px);
-			height: auto;
-		}
-
-		/* Slide counter */
-		.slide-counter {
-			position: fixed;
-			bottom: 16px;
-			right: 20px;
-			font-size: 0.85em;
-			color: #999;
-			background: rgba(255, 255, 255, 0.9);
-			padding: 4px 12px;
-			border-radius: 12px;
-			border: 1px solid #e0e0e0;
-		}
-
-		/* Navigation arrows */
-		.nav-arrow {
-			position: fixed;
-			top: 50%;
-			transform: translateY(-50%);
-			background: transparent;
-			border: 1px solid #d0d0d0;
-			color: #666;
-			font-size: 1.4em;
-			width: 36px;
-			height: 36px;
-			border-radius: 50%;
-			cursor: pointer;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			transition: background 0.15s ease, border-color 0.15s ease;
-			z-index: 10;
-		}
-
-		.nav-arrow:hover {
-			background: #f5f5f5;
-			border-color: #999;
-		}
-
-		.nav-arrow.prev { left: 10px; }
-		.nav-arrow.next { right: 10px; }
-
-		.nav-arrow:disabled {
-			opacity: 0.3;
-			cursor: default;
-		}
-
-		.nav-arrow:disabled:hover {
-			background: transparent;
-			border-color: #d0d0d0;
-		}
-
-		/* Hide nav when only one slide */
-		.single-slide .nav-arrow,
-		.single-slide .slide-counter {
-			display: none;
-		}
-	</style>
-</head>
-<body class="${diagrams.length === 1 ? "single-slide" : ""}">
-	<button class="nav-arrow prev" aria-label="Previous slide">&#8249;</button>
-	<button class="nav-arrow next" aria-label="Next slide">&#8250;</button>
-	<div class="slide-container">
-		<div class="slide-content">
-			<pre class="mermaid"></pre>
-		</div>
-	</div>
-	<div class="slide-counter"></div>
-
-	<script type="module" nonce="${nonce}">
-		import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-
-		const diagrams = ${diagramsJson};
-		let currentIndex = 0;
-
-		mermaid.initialize({
-			startOnLoad: false,
-			theme: '${theme}',
-			securityLevel: 'loose'
-		});
-
-		const container = document.querySelector('.slide-content');
-		const counter = document.querySelector('.slide-counter');
-		const prevBtn = document.querySelector('.nav-arrow.prev');
-		const nextBtn = document.querySelector('.nav-arrow.next');
-
-		async function renderSlide(index) {
-			currentIndex = index;
-
-			// Clear previous render and create fresh element
-			container.innerHTML = '<pre class="mermaid">' + diagrams[currentIndex] + '</pre>';
-
-			try {
-				await mermaid.run({ querySelector: '.mermaid' });
-			} catch (error) {
-				console.error('Mermaid rendering failed:', error);
-				container.innerHTML = '<p style="color: #c00;">Failed to render diagram ' + (currentIndex + 1) + '</p>';
-			}
-
-			counter.textContent = (currentIndex + 1) + ' / ' + diagrams.length;
-			prevBtn.disabled = currentIndex === 0;
-			nextBtn.disabled = currentIndex === diagrams.length - 1;
-		}
-
-		function goNext() {
-			if (currentIndex < diagrams.length - 1) {
-				renderSlide(currentIndex + 1);
-			}
-		}
-
-		function goPrev() {
-			if (currentIndex > 0) {
-				renderSlide(currentIndex - 1);
-			}
-		}
-
-		// Keyboard navigation
-		document.addEventListener('keydown', (e) => {
-			if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-				e.preventDefault();
-				goNext();
-			} else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-				e.preventDefault();
-				goPrev();
-			}
-		});
-
-		// Mouse scroll navigation (debounced to prevent rapid firing)
-		let scrollCooldown = false;
-		document.addEventListener('wheel', (e) => {
-			if (scrollCooldown) return;
-			scrollCooldown = true;
-			setTimeout(() => { scrollCooldown = false; }, 300);
-
-			if (e.deltaY > 0) {
-				goNext();
-			} else if (e.deltaY < 0) {
-				goPrev();
-			}
-		});
-
-		// Click navigation
-		prevBtn.addEventListener('click', goPrev);
-		nextBtn.addEventListener('click', goNext);
-
-		// Listen for messages from the extension (live updates)
-		window.addEventListener('message', (event) => {
-			const message = event.data;
-			if (message.type === 'update') {
-				diagrams.length = 0;
-				diagrams.push(...message.diagrams);
-
-				if (diagrams.length === 0) {
-					container.innerHTML = '<p style="color: #666;">No Mermaid diagrams found.</p>';
-					counter.textContent = '';
-					document.body.classList.add('single-slide');
-					return;
-				}
-
-				document.body.classList.toggle('single-slide', diagrams.length === 1);
-
-				// Clamp current index if diagrams were removed
-				const newIndex = Math.min(currentIndex, diagrams.length - 1);
-				renderSlide(newIndex);
-			}
-		});
-
-		// Render first slide
-		renderSlide(0);
-	</script>
-</body>
-</html>`;
+	return html;
 }
 
 /**
@@ -346,6 +153,7 @@ function activate(context) {
 
 	let currentPanel = undefined;
 	let currentDocument = undefined;
+	let debounceTimer = undefined;
 
 	const disposable = vscode.commands.registerCommand(
 		"mermaidSlideshow.showPreview",
@@ -363,23 +171,19 @@ function activate(context) {
 			}
 
 			const diagrams = extractMermaidBlocks(doc.getText());
-			const theme = vscode.workspace.getConfiguration("mermaidSlideshow").get("theme", "default");
+			const theme = resolveTheme();
+			const nonce = getNonce();
 
 			if (currentPanel) {
 				currentPanel.reveal(vscode.ViewColumn.Beside);
 				currentDocument = doc;
-				postDiagramUpdate(currentPanel, diagrams);
+				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
 			} else {
-				const nonce = getNonce();
-
 				currentPanel = vscode.window.createWebviewPanel(
 					"mermaidSlideshow",
 					"Mermaid Slideshow",
 					vscode.ViewColumn.Beside,
-					{
-						enableScripts: true,
-						retainContextWhenHidden: true,
-					}
+					{ enableScripts: true }
 				);
 
 				currentDocument = doc;
@@ -397,7 +201,7 @@ function activate(context) {
 		}
 	);
 
-	// Live-update preview when source file changes
+	// Live-update preview when source file changes (debounced)
 	const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
 		(e) => {
 			if (
@@ -405,8 +209,11 @@ function activate(context) {
 				currentDocument &&
 				e.document.uri.toString() === currentDocument.uri.toString()
 			) {
-				const diagrams = extractMermaidBlocks(e.document.getText());
-				postDiagramUpdate(currentPanel, diagrams);
+				clearTimeout(debounceTimer);
+				debounceTimer = setTimeout(() => {
+					const diagrams = extractMermaidBlocks(e.document.getText());
+					postDiagramUpdate(currentPanel, diagrams);
+				}, 300);
 			}
 		}
 	);
@@ -419,7 +226,19 @@ function activate(context) {
 				currentPanel &&
 				currentDocument
 			) {
-				const theme = vscode.workspace.getConfiguration("mermaidSlideshow").get("theme", "default");
+				const theme = resolveTheme();
+				const nonce = getNonce();
+				const diagrams = extractMermaidBlocks(currentDocument.getText());
+				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+			}
+		}
+	);
+
+	// Re-render when VS Code color theme changes (affects auto-detected Mermaid theme)
+	const changeColorThemeSubscription = vscode.window.onDidChangeActiveColorTheme(
+		() => {
+			if (currentPanel && currentDocument) {
+				const theme = resolveTheme();
 				const nonce = getNonce();
 				const diagrams = extractMermaidBlocks(currentDocument.getText());
 				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
@@ -430,6 +249,7 @@ function activate(context) {
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(changeDocumentSubscription);
 	context.subscriptions.push(changeConfigSubscription);
+	context.subscriptions.push(changeColorThemeSubscription);
 }
 
 function deactivate() {}
@@ -437,4 +257,5 @@ function deactivate() {}
 module.exports = {
 	activate,
 	deactivate,
+	extractMermaidBlocks,
 };
