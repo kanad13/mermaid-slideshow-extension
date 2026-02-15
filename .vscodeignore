@@ -9,6 +9,7 @@
 *.log
 docs/
 examples/
+test/
 node_modules/
 jsconfig.json
 eslint.config.js

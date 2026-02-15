@@ -83,7 +83,7 @@
 	},
 	"scripts": {
 		"lint": "eslint .",
-		"test": "npm run lint",
+		"test": "node --test 'test/**/*.test.js' && npm run lint",
 		"package": "vsce package",
 		"publish": "vsce publish"
 	},
