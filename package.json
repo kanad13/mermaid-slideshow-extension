@@ -43,10 +43,7 @@
 				"command": "mermaidSlideshow.showPreview",
 				"title": "Show Mermaid Slideshow",
 				"category": "Mermaid",
-				"icon": {
-					"light": "assets/icon-presentation.svg",
-					"dark": "assets/icon-presentation.svg"
-				}
+				"icon": "$(vm-running)"
 			}
 		],
 		"menus": {

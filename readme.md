@@ -4,7 +4,7 @@ A VS Code extension that turns Mermaid diagrams into a distraction-free slidesho
 
 Each diagram gets its own full-panel slide - no surrounding markdown, no tiny inline renders, no clutter.
 
-![](/assets/present.gif)
+![](/assets/simple-start.gif)
 
 ## Why This Extension?
 
@@ -15,6 +15,8 @@ VS Code's built-in markdown preview renders diagrams inline alongside text - sma
 - **Iterate on diagrams** - live preview updates instantly as you edit the source, keeping you in flow
 - **Both syntaxes supported** - GitHub-style (```) and Azure DevOps-style (:::) Mermaid blocks
 - **Secure** - Content Security Policy with nonce-based script execution, no user HTML passthrough
+
+![](/assets/present.gif)
 
 ## Install
 
