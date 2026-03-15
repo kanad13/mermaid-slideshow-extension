@@ -26,7 +26,9 @@
 		"flowchart",
 		"sequence diagram",
 		"markdown",
-		"preview"
+		"preview",
+		"images",
+		"slides"
 	],
 	"qna": "marketplace",
 	"galleryBanner": {
@@ -74,6 +76,16 @@
 						"Grayscale, high-contrast, print-friendly"
 					],
 					"description": "Color theme for rendered Mermaid diagrams. When set to 'default', automatically matches your VS Code color theme."
+				},
+				"mermaidSlideshow.enableImages": {
+					"type": "boolean",
+					"default": true,
+					"description": "Include images from your markdown file as presentation slides. When enabled, image references like ![alt](path) are rendered as full slides alongside Mermaid diagrams. Disable to show only Mermaid diagrams (and markdown slides, if enabled)."
+				},
+				"mermaidSlideshow.enableMarkdownSlides": {
+					"type": "boolean",
+					"default": true,
+					"description": "Include markdown content as presentation slides. When enabled, text sections separated by horizontal rules (---) are rendered as styled slides with full markdown formatting (headings, lists, code blocks, tables, etc.). Disable to show only Mermaid diagrams (and images, if enabled)."
 				}
 			}
 		}

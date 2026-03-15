@@ -1,6 +1,7 @@
 # Mermaid Slideshow
 
-This file contains diverse Mermaid diagram types for testing slideshow rendering and navigation.
+This file contains diverse content types for testing slideshow rendering and navigation.
+It demonstrates Mermaid diagrams, image slides, and markdown content slides.
 
 ## About This Extension
 
@@ -22,6 +23,9 @@ This file contains diverse Mermaid diagram types for testing slideshow rendering
 
 - Use the Zen Mode for distraction-free presenting.
 
+- **NEW:** Also supports image slides and markdown content slides!
+
+---
 
 ## Diagram 1: Flowchart
 
@@ -56,6 +60,96 @@ sequenceDiagram
 
 - This is another block of text to confirm that only Mermaid diagrams are presented in the slideshow.
 
+---
+
+## Image Slides
+
+These images test different aspect ratios and sizes. Each image becomes its own slide, centered and scaled to fit without distortion.
+
+### Large Landscape Image (2560×1707)
+
+![Large landscape](../assets/test-images/2560×1707-pixels.jpg)
+
+### Small Landscape Image (320×213)
+
+![Small landscape](../assets/test-images/320×213-pixels.jpg)
+
+### Portrait Image (505×636)
+
+![Portrait](../assets/test-images/505×636-pixel.jpg)
+
+### Tall Portrait Image (673×1024)
+
+![Tall portrait](../assets/test-images/673×1024-pixels.jpg)
+
+---
+
+## Markdown Slide: Bullet Points and Lists
+
+This section demonstrates markdown rendering as a presentation slide.
+
+### Unordered List
+
+- First item
+- Second item with **bold text**
+- Third item with `inline code`
+  - Nested item A
+  - Nested item B
+    - Deeply nested
+
+### Ordered List
+
+1. Step one
+2. Step two
+3. Step three
+   1. Sub-step 3a
+   2. Sub-step 3b
+
+---
+
+## Markdown Slide: Code Blocks and Formatting
+
+### JavaScript Example
+
+```javascript
+function greet(name) {
+    return `Hello, ${name}!`;
+}
+
+console.log(greet("World"));
+```
+
+### Python Example
+
+```python
+def fibonacci(n):
+    a, b = 0, 1
+    for _ in range(n):
+        yield a
+        a, b = b, a + b
+
+print(list(fibonacci(10)))
+```
+
+### Blockquote
+
+> "The best way to predict the future is to invent it."
+> — Alan Kay
+
+---
+
+## Markdown Slide: Tables
+
+| Feature | Status | Notes |
+|---|---|---|
+| Mermaid diagrams | ✅ Supported | All diagram types |
+| Image slides | ✅ Supported | Any aspect ratio |
+| Markdown slides | ✅ Supported | Full formatting |
+| Navigation | ✅ Supported | Keyboard, mouse, arrows |
+| Live updates | ✅ Supported | Debounced 300ms |
+
+---
+
 ## Diagram 3: State Diagram
 
 ```mermaid
@@ -88,6 +182,8 @@ A[Markdown File] --> B[Extract Blocks]
 B --> C[Slideshow]
 C --> D[Navigate]
 :::
+
+---
 
 ## Diagram 6: Class Diagram
 
@@ -160,9 +256,11 @@ mindmap
             UAT
 ```
 
+---
+
 ## Non-Mermaid Content
 
-This paragraph and the code block below should be ignored by the extraction engine.
+This paragraph and the code block below should be ignored by the extraction engine when image and markdown slides are disabled.
 
 ```javascript
 console.log("This is not a mermaid diagram");

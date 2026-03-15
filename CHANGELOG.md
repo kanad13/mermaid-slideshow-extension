@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-03-15
+
+### Added
+- **Image slides:** Markdown images (`![alt](path)`) are now rendered as full-screen presentation slides, centered and scaled to fit without distortion. Supports both local and remote images of any aspect ratio.
+- **Markdown content slides:** Text sections separated by horizontal rules (`---`) are rendered as styled slides with full markdown formatting — headings, bullet/numbered lists, nested lists, code blocks, blockquotes, tables, bold, italic, and links.
+- **Markdown rendering via CDN:** Uses the `marked` library loaded from jsDelivr (same pattern as Mermaid) — no bundled runtime dependencies added.
+- **Settings: `enableImages`** — Toggle image slides on/off (default: on).
+- **Settings: `enableMarkdownSlides`** — Toggle markdown content slides on/off (default: on).
+- New unified extraction engine (`extractSlides`) that processes all content types in document order.
+- 15 new unit tests for the `extractSlides` function covering all slide types, feature toggles, and edge cases.
+
+### Changed
+- Extraction engine refactored from `extractMermaidBlocks` (mermaid-only) to `extractSlides` (multi-type, position-aware). The legacy `extractMermaidBlocks` function is preserved as a wrapper for backward compatibility.
+- Webview template updated with multi-type slide rendering, image CSS (object-fit, centering), and markdown prose styling.
+- CSP updated to allow `img-src` for local webview URIs and HTTPS images.
+- Empty-state message updated: "No presentation slides found" (context-aware based on enabled features).
+- Settings change listener now responds to `enableImages` and `enableMarkdownSlides` changes in addition to theme changes.
+- Updated README, architecture docs, and test file to document all new features.
+
 ## [1.1.4] - 2026-03-13
 
 ### Fixed
