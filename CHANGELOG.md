@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.4] - 2026-03-13
+
+### Fixed
+- Replace custom SVG command icon with built-in `$(vm-running)` codicon for correct rendering in dark and high-contrast VS Code themes
+
+### Changed
+- Updated readme hero screenshot
+
 ## [1.1.3] - 2026-02-15
 
 ### Changed
