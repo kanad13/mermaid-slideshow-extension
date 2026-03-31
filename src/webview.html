@@ -14,6 +14,7 @@
 			color: var(--vscode-editor-foreground);
 			height: 100vh;
 			overflow: hidden;
+			user-select: none;
 		}
 
 		.slide-container {
@@ -29,72 +30,21 @@
 			width: 100%;
 			max-height: calc(100vh - 120px);
 			display: flex;
-			align-items: stretch;
+			align-items: center;
 			justify-content: center;
 			overflow: auto;
 		}
 
-		.slide-inner {
-			width: 100%;
-			max-width: 960px;
-			padding: 24px 32px;
-			background: var(--vscode-editor-background);
-			border-radius: 8px;
-			box-shadow: 0 0 0 1px var(--vscode-widget-border, rgba(128,128,128,0.35));
-			overflow: hidden;
-		}
-
-		.slide-inner h1,
-		.slide-inner h2,
-		.slide-inner h3,
-		.slide-inner h4,
-		.slide-inner h5,
-		.slide-inner h6 {
-			margin: 0 0 0.4em 0;
-		}
-
-		.slide-inner p {
-			margin: 0 0 0.6em 0;
-		}
-
-		.slide-inner ul,
-		.slide-inner ol {
-			margin-left: 1.3em;
-			margin-bottom: 0.7em;
-		}
-
-		.slide-inner pre {
-			margin: 0.6em 0;
-			background-color: var(--vscode-textCodeBlock-background);
-			border-radius: 4px;
-			padding: 10px 12px;
-			overflow-x: auto;
-		}
-
-		.slide-inner code {
-			background-color: var(--vscode-textCodeBlock-background);
-			padding: 2px 4px;
-			border-radius: 3px;
-			font-family: 'Courier New', Courier, monospace;
-			font-size: 0.9em;
-		}
-
-		.slide-inner pre code {
-			background: transparent;
-			padding: 0;
-		}
-
-		.slide-inner .mermaid {
+		.slide-content .mermaid {
 			background: transparent;
 			border: none;
 			text-align: center;
 			width: 100%;
-			margin: 0.6em 0;
 		}
 
-		.slide-inner .mermaid svg {
+		.slide-content .mermaid svg {
 			max-width: 100%;
-			max-height: calc(100vh - 180px);
+			max-height: calc(100vh - 140px);
 			height: auto;
 		}
 
@@ -158,7 +108,7 @@
 	<button class="nav-arrow next" aria-label="Next slide">&#8250;</button>
 	<div class="slide-container">
 		<div class="slide-content">
-			<div class="slide-inner"></div>
+			<pre class="mermaid"></pre>
 		</div>
 	</div>
 	<div class="slide-counter"></div>
@@ -166,7 +116,7 @@
 	<script type="module" nonce="{{NONCE}}">
 		import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 
-		const slides = {{SLIDES_JSON}};
+		const diagrams = {{DIAGRAMS_JSON}};
 		let currentIndex = 0;
 
 		mermaid.initialize({
@@ -175,180 +125,29 @@
 			securityLevel: 'loose'
 		});
 
-		const container = document.querySelector('.slide-inner');
+		const container = document.querySelector('.slide-content');
 		const counter = document.querySelector('.slide-counter');
 		const prevBtn = document.querySelector('.nav-arrow.prev');
 		const nextBtn = document.querySelector('.nav-arrow.next');
 
-		function escapeHtml(str) {
-			return str
-				.replace(/&/g, '&amp;')
-				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;');
-		}
-
-		function renderInline(text) {
-			let out = escapeHtml(text);
-			// Inline code
-			out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
-			// Bold (** or __)
-			out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-			out = out.replace(/__([^_]+)__/g, '<strong>$1</strong>');
-			// Italic (* or _)
-			out = out.replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>');
-			out = out.replace(/(^|[^_])_([^_]+)_/g, '$1<em>$2</em>');
-			return out;
-		}
-
-		function renderMarkdownToHtml(markdown) {
-			const lines = markdown.split(/\r?\n/);
-			let html = '';
-			let inCode = false;
-			let codeLang = '';
-			let inMermaidColon = false;
-			let inList = false;
-			let listType = '';
-
-			function closeList() {
-				if (inList) {
-					html += listType === 'ol' ? '</ol>' : '</ul>';
-					inList = false;
-					listType = '';
-				}
-			}
-
-			for (let i = 0; i < lines.length; i++) {
-				const rawLine = lines[i];
-				let line = rawLine;
-
-				// Mermaid backtick fences
-				if (!inCode && line.match(/^```mermaid\s*$/)) {
-					inCode = true;
-					codeLang = 'mermaid';
-					html += '<pre class="mermaid">';
-					continue;
-				}
-				if (inCode && codeLang === 'mermaid' && line.match(/^```\s*$/)) {
-					inCode = false;
-					codeLang = '';
-					html += '</pre>';
-					continue;
-				}
-
-				// Generic fenced code
-				if (!inCode && line.match(/^```/)) {
-					inCode = true;
-					codeLang = '';
-					html += '<pre><code>';
-					continue;
-				}
-				if (inCode && codeLang === '' && line.match(/^```\s*$/)) {
-					inCode = false;
-					codeLang = '';
-					html += '</code></pre>';
-					continue;
-				}
-
-				// Azure DevOps ::: mermaid
-				if (!inCode && !inMermaidColon && line.match(/^:::\s*mermaid/)) {
-					inMermaidColon = true;
-					html += '<pre class="mermaid">';
-					continue;
-				}
-				if (inMermaidColon && line.match(/^:::\s*$/)) {
-					inMermaidColon = false;
-					html += '</pre>';
-					continue;
-				}
-
-				if (inCode || inMermaidColon) {
-					html += escapeHtml(line) + '\n';
-					continue;
-				}
-
-				// Lists
-				const bulletMatch = line.match(/^\s*[-+*]\s+(.+)/);
-				const orderedMatch = line.match(/^\s*(\d+)\.\s+(.+)/);
-
-				if (bulletMatch) {
-					if (!inList || listType !== 'ul') {
-						closeList();
-						html += '<ul>';
-						inList = true;
-						listType = 'ul';
-					}
-					html += '<li>' + renderInline(bulletMatch[1]) + '</li>';
-					continue;
-				}
-
-				if (orderedMatch) {
-					if (!inList || listType !== 'ol') {
-						closeList();
-						html += '<ol>';
-						inList = true;
-						listType = 'ol';
-					}
-					html += '<li>' + renderInline(orderedMatch[2]) + '</li>';
-					continue;
-				}
-
-				// Non-list block closes any open list
-				closeList();
-
-				// Blockquotes (single-line)
-				const quoteMatch = line.match(/^\s*>\s?(.*)/);
-				if (quoteMatch) {
-					html += '<blockquote>' + renderInline(quoteMatch[1]) + '</blockquote>';
-					continue;
-				}
-
-				if (/^\s*#\s+/.test(line)) {
-					html += '<h1>' + renderInline(line.replace(/^\s*#\s+/, '')) + '</h1>';
-				} else if (/^\s*##\s+/.test(line)) {
-					html += '<h2>' + renderInline(line.replace(/^\s*##\s+/, '')) + '</h2>';
-				} else if (/^\s*###\s+/.test(line)) {
-					html += '<h3>' + renderInline(line.replace(/^\s*###\s+/, '')) + '</h3>';
-				} else if (/^\s*####\s+/.test(line)) {
-					html += '<h4>' + renderInline(line.replace(/^\s*####\s+/, '')) + '</h4>';
-				} else if (/^\s*#####\s+/.test(line)) {
-					html += '<h5>' + renderInline(line.replace(/^\s*#####\s+/, '')) + '</h5>';
-				} else if (/^\s*######\s+/.test(line)) {
-					html += '<h6>' + renderInline(line.replace(/^\s*######\s+/, '')) + '</h6>';
-				} else if (line.trim().length === 0) {
-					html += '<br />';
-				} else {
-					html += '<p>' + renderInline(line) + '</p>';
-				}
-			}
-
-			closeList();
-			return html;
-		}
-
 		async function renderSlide(index) {
 			currentIndex = index;
-			if (!slides.length) {
-				container.innerHTML = '<p style="color: var(--vscode-descriptionForeground);">No slides found.</p>';
-				counter.textContent = '';
-				return;
-			}
-
-			const markdown = slides[currentIndex];
-			container.innerHTML = renderMarkdownToHtml(markdown);
+			container.innerHTML = '<pre class="mermaid">' + diagrams[currentIndex] + '</pre>';
 
 			try {
 				await mermaid.run({ querySelector: '.mermaid' });
 			} catch (error) {
 				console.error('Mermaid rendering failed:', error);
+				container.innerHTML = '<p style="color: var(--vscode-errorForeground);">Failed to render diagram ' + (currentIndex + 1) + '</p>';
 			}
 
-			counter.textContent = (currentIndex + 1) + ' / ' + slides.length;
+			counter.textContent = (currentIndex + 1) + ' / ' + diagrams.length;
 			prevBtn.disabled = currentIndex === 0;
-			nextBtn.disabled = currentIndex === slides.length - 1;
+			nextBtn.disabled = currentIndex === diagrams.length - 1;
 		}
 
 		function goNext() {
-			if (currentIndex < slides.length - 1) {
+			if (currentIndex < diagrams.length - 1) {
 				renderSlide(currentIndex + 1);
 			}
 		}
@@ -360,10 +159,10 @@
 		}
 
 		document.addEventListener('keydown', (e) => {
-			if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+			if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
 				e.preventDefault();
 				goNext();
-			} else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+			} else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
 				e.preventDefault();
 				goPrev();
 			}
@@ -388,30 +187,23 @@
 		window.addEventListener('message', (event) => {
 			const message = event.data;
 			if (message.type === 'update') {
-				slides.length = 0;
-				slides.push(...message.slides);
+				diagrams.length = 0;
+				diagrams.push(...message.diagrams);
 
-				if (slides.length === 0) {
-					container.innerHTML = '<p style="color: var(--vscode-descriptionForeground);">No slides found.</p>';
+				if (diagrams.length === 0) {
+					container.innerHTML = '<p style="color: var(--vscode-descriptionForeground);">No Mermaid diagrams found.</p>';
 					counter.textContent = '';
 					document.body.classList.add('single-slide');
 					return;
 				}
 
-				document.body.classList.toggle('single-slide', slides.length === 1);
-				const newIndex = Math.min(currentIndex, slides.length - 1);
+				document.body.classList.toggle('single-slide', diagrams.length === 1);
+				const newIndex = Math.min(currentIndex, diagrams.length - 1);
 				renderSlide(newIndex);
 			}
 		});
 
-		if (slides.length === 0) {
-			container.innerHTML = '<p style="color: var(--vscode-descriptionForeground);">No slides found.</p>';
-			counter.textContent = '';
-			document.body.classList.add('single-slide');
-		} else {
-			document.body.classList.toggle('single-slide', slides.length === 1);
-			renderSlide(0);
-		}
+		renderSlide(0);
 	</script>
 </body>
 </html>
