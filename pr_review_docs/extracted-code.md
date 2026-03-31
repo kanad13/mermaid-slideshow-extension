@@ -60,9 +60,9 @@ function splitSlides(rawText) {
 	let startLine = 0;
 
 	// Skip YAML front matter if present (file starts with ---)
-	if (lines[0] === "---") {
+	if (/^---\s*$/.test(lines[0])) {
 		for (let j = 1; j < lines.length; j++) {
-			if (lines[j] === "---" || lines[j] === "...") {
+			if (/^---\s*$/.test(lines[j]) || /^\.\.\.\s*$/.test(lines[j])) {
 				startLine = j + 1;
 				break;
 			}

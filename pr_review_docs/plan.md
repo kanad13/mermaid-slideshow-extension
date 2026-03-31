@@ -89,7 +89,7 @@ typography rules. Full CSS source is in `extracted-code.md` → "CSS additions f
 
 ⚠️ **Fix from PR:** Change `.slide-inner { overflow: hidden }` → `.slide-inner { overflow: visible }`.
 The PR's `overflow: hidden` clips tall slide content inside the flex container.
-See `findings.md` → Issue 9 and `rationale.md` → Decision 7.
+See `findings.md` → Issue 9.
 
 **Add `<hr>` rule** inside `.slide-inner` styles:
 ```css

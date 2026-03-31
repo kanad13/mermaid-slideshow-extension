@@ -96,9 +96,9 @@ Full code for each piece is in `pr_review_docs/extracted-code.md`.
 Files that start with `---\nkey: value\n---` (YAML front matter) must have that
 block stripped before splitting. Detect it at line 0:
 ```javascript
-if (lines[0] === "---") {
+if (/^---\s*$/.test(lines[0])) {
     for (let j = 1; j < lines.length; j++) {
-        if (lines[j] === "---" || lines[j] === "...") {
+        if (/^---\s*$/.test(lines[j]) || /^\.\.\.\s*$/.test(lines[j])) {
             startLine = j + 1;
             break;
         }
@@ -180,13 +180,13 @@ Commit after each phase. Each commit must individually pass `npm test`.
 2. `feat: add markdown renderer and typography to webview; restore error handling`
 3. `test: add splitSlides, hasSlideDelimiter, getSlides test suites`
 4. `docs: add slide-mode-demo.md example`
-5. `docs: update CLAUDE.md and CHANGELOG for slide mode`
+5. `docs: update CLAUDE.md, CHANGELOG, package.json for slide mode`
 
 ---
 
 ## Files You Should NOT Touch
 
 - `examples/test.md` — classic mode regression test, leave as-is
-- `package.json` — no new dependencies
+- `package.json` — do not add or modify `dependencies` / `devDependencies`; description and keywords updates (Phase 5.3) are permitted
 - Any existing test in `describe("extractMermaidBlocks", ...)`
 - `getNonce()`, `resolveTheme()`, VS Code event subscription code in `activate()`
