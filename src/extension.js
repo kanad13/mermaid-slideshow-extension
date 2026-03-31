@@ -40,6 +40,72 @@ function extractMermaidBlocks(rawText) {
 }
 
 /**
+ * Splits a markdown document into logical slides.
+ *
+ * Uses a horizontal rule style separator: a line that contains
+ * only three dashes ("---") plus optional whitespace. Separators
+ * that appear inside fenced code blocks (``` or ::: mermaid ... :::)
+ * are ignored so code samples are preserved intact.
+ *
+ * Empty slides (whitespace only) are skipped.
+ *
+ * @param {string} rawText - Raw markdown file content
+ * @returns {string[]} Array of per-slide markdown strings
+ */
+function splitSlides(rawText) {
+	if (!rawText) {
+		return [];
+	}
+
+	const lines = rawText.split(/\r?\n/);
+	const slides = [];
+	let current = [];
+	let insideFence = false;
+	let insideColonMermaid = false;
+
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i];
+
+		// Track triple-backtick code fences (any language)
+		if (line.match(/^```/)) {
+			insideFence = !insideFence;
+			current.push(line);
+			continue;
+		}
+
+		// Track Azure DevOps style mermaid fences ::: mermaid ... :::
+		if (!insideFence && line.match(/^:::\s*mermaid/)) {
+			insideColonMermaid = true;
+			current.push(line);
+			continue;
+		}
+		if (insideColonMermaid && line.match(/^:::\s*$/)) {
+			insideColonMermaid = false;
+			current.push(line);
+			continue;
+		}
+
+		// Slide separators are only recognized outside of fenced blocks
+		if (!insideFence && !insideColonMermaid && /^---\s*$/.test(line)) {
+			const slideText = current.join("\n").trim();
+			if (slideText) {
+				slides.push(slideText);
+			}
+			current = [];
+		} else {
+			current.push(line);
+		}
+	}
+
+	const last = current.join("\n").trim();
+	if (last) {
+		slides.push(last);
+	}
+
+	return slides;
+}
+
+/**
  * Generates a random nonce for Content Security Policy.
  *
  * @returns {string} Random 32-character alphanumeric string
@@ -76,15 +142,18 @@ function resolveTheme() {
  * Generates the slideshow webview HTML from a template file.
  *
  * Reads src/webview.html and replaces placeholder tokens with runtime values.
- * Returns an empty-state page when no diagrams are found.
+ * Returns an empty-state page when no slides are found.
+ * Each slide is kept as raw markdown; the webview contains a
+ * minimal markdown renderer that turns headings/paragraphs and
+ * Mermaid blocks into HTML so that diagrams and text share a slide.
  *
- * @param {string[]} diagrams - Array of Mermaid diagram code strings
+ * @param {string[]} slides - Array of markdown slide strings
  * @param {string} nonce - CSP nonce token
  * @param {string} theme - Mermaid theme name (default, dark, forest, neutral)
  * @returns {string} Complete HTML page
  */
-function getWebviewContent(diagrams, nonce, theme) {
-	if (diagrams.length === 0) {
+function getWebviewContent(slides, nonce, theme) {
+	if (slides.length === 0) {
 		return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,8 +178,8 @@ function getWebviewContent(diagrams, nonce, theme) {
 </head>
 <body>
 	<div class="empty">
-		<p>No Mermaid diagrams found in this file.</p>
-		<p style="font-size: 0.85em;">Add a \`\`\`mermaid code block to get started.</p>
+		<p>No slides found in this file.</p>
+		<p style="font-size: 0.85em;">Add content to your markdown file and separate slides with a line containing only <code>---</code>.</p>
 	</div>
 </body>
 </html>`;
@@ -121,22 +190,22 @@ function getWebviewContent(diagrams, nonce, theme) {
 
 	html = html.replace(/\{\{NONCE\}\}/g, nonce);
 	html = html.replace("{{THEME}}", theme);
-	html = html.replace("{{DIAGRAMS_JSON}}", JSON.stringify(diagrams));
-	html = html.replace("{{SINGLE_SLIDE_CLASS}}", diagrams.length === 1 ? "single-slide" : "");
+	html = html.replace("{{SLIDES_JSON}}", JSON.stringify(slides).replace(/</g, "\\u003c"));
+	html = html.replace("{{SINGLE_SLIDE_CLASS}}", slides.length === 1 ? "single-slide" : "");
 
 	return html;
 }
 
 /**
- * Sends updated diagrams to the webview via postMessage.
+ * Sends updated slides to the webview via postMessage.
  *
  * @param {vscode.WebviewPanel} panel - The webview panel
- * @param {string[]} diagrams - Updated array of Mermaid diagram strings
+ * @param {string[]} slides - Updated array of markdown slide strings
  */
-function postDiagramUpdate(panel, diagrams) {
+function postSlidesUpdate(panel, slides) {
 	panel.webview.postMessage({
 		type: "update",
-		diagrams: diagrams
+		slides: slides
 	});
 }
 
@@ -144,7 +213,9 @@ function postDiagramUpdate(panel, diagrams) {
  * Activation function - called when the extension loads.
  *
  * Registers the "Show Mermaid Slideshow Preview" command and manages
- * a single webview panel that displays Mermaid diagrams as a slideshow.
+ * a single webview panel that displays markdown-based slides. Each
+ * slide is separated by a line containing only "---" and can contain
+ * regular markdown content and Mermaid diagrams.
  *
  * @param {vscode.ExtensionContext} context - Extension context provided by VS Code
  */
@@ -169,15 +240,15 @@ function activate(context) {
 				vscode.window.showErrorMessage("Not a Markdown file");
 				return;
 			}
-
-			const diagrams = extractMermaidBlocks(doc.getText());
+		
+			const slides = splitSlides(doc.getText());
 			const theme = resolveTheme();
 			const nonce = getNonce();
 
 			if (currentPanel) {
 				currentPanel.reveal(vscode.ViewColumn.Beside);
 				currentDocument = doc;
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
 			} else {
 				currentPanel = vscode.window.createWebviewPanel(
 					"mermaidSlideshow",
@@ -187,7 +258,7 @@ function activate(context) {
 				);
 
 				currentDocument = doc;
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
 
 				currentPanel.onDidDispose(
 					() => {
@@ -211,8 +282,8 @@ function activate(context) {
 			) {
 				clearTimeout(debounceTimer);
 				debounceTimer = setTimeout(() => {
-					const diagrams = extractMermaidBlocks(e.document.getText());
-					postDiagramUpdate(currentPanel, diagrams);
+					const slides = splitSlides(e.document.getText());
+					postSlidesUpdate(currentPanel, slides);
 				}, 300);
 			}
 		}
@@ -228,8 +299,8 @@ function activate(context) {
 			) {
 				const theme = resolveTheme();
 				const nonce = getNonce();
-				const diagrams = extractMermaidBlocks(currentDocument.getText());
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+				const slides = splitSlides(currentDocument.getText());
+				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
 			}
 		}
 	);
@@ -240,8 +311,8 @@ function activate(context) {
 			if (currentPanel && currentDocument) {
 				const theme = resolveTheme();
 				const nonce = getNonce();
-				const diagrams = extractMermaidBlocks(currentDocument.getText());
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+				const slides = splitSlides(currentDocument.getText());
+				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
 			}
 		}
 	);
@@ -258,4 +329,5 @@ module.exports = {
 	activate,
 	deactivate,
 	extractMermaidBlocks,
+	splitSlides,
 };

@@ -19,7 +19,7 @@ require.cache["vscode"] = {
 	}
 };
 
-const { extractMermaidBlocks } = require("../src/extension");
+const { extractMermaidBlocks, splitSlides } = require("../src/extension");
 
 describe("extractMermaidBlocks", () => {
 
@@ -88,5 +88,35 @@ describe("extractMermaidBlocks", () => {
 		const result = extractMermaidBlocks(input);
 		assert.equal(result.length, 1);
 		assert.match(result[0], /graph LR/);
+	});
+
+	it("splits slides on --- delimiters", () => {
+		const input = "# Slide 1\ncontent\n---\n# Slide 2\nmore";
+		const result = splitSlides(input);
+		assert.equal(result.length, 2);
+		assert.match(result[0], /Slide 1/);
+		assert.match(result[1], /Slide 2/);
+	});
+
+	it("ignores --- inside fenced code", () => {
+		const input = "# Slide 1\n```js\n---\n```\n---\n# Slide 2";
+		const result = splitSlides(input);
+		assert.equal(result.length, 2);
+		assert.match(result[0], /Slide 1/);
+		assert.match(result[1], /Slide 2/);
+	});
+
+	it("ignores --- inside ::: mermaid blocks", () => {
+		const input = "# Slide 1\n::: mermaid\ngraph TD\n  A---B\n:::\n---\n# Slide 2";
+		const result = splitSlides(input);
+		assert.equal(result.length, 2);
+		assert.match(result[0], /Slide 1/);
+		assert.match(result[1], /Slide 2/);
+	});
+
+	it("skips empty slides between separators", () => {
+		const input = "# Slide 1\n---\n\n---\n# Slide 2";
+		const result = splitSlides(input);
+		assert.equal(result.length, 2);
 	});
 });
