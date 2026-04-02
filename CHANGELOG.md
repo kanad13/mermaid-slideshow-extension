@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2026-04-02
+
+### Fixed
+- Revert accidental marketplace publish of experimental `feat/image-markdown-slides` branch (1.2.0). This release restores the stable 1.1.4 main branch code.
+
 ## [1.1.4] - 2026-03-13
 
 ### Fixed
