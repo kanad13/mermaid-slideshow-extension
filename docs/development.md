@@ -263,10 +263,10 @@ echo $?  # Should output: 0
 ### Step 4: Build Package
 
 ```bash
-npm run build
+npm run package
 
-# Verify files updated
-ls -lh dist/extension.js dist/extension.js.map
+# Verify .vsix created
+ls -lh mermaid-slideshow-*.vsix
 ```
 
 ### Step 5: Commit Version Update
