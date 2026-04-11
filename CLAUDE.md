@@ -1,8 +1,8 @@
-# Mermaid Slideshow - VS Code Extension
+# Markdown Slideshow - VS Code Extension
 
 ## Key Context
 
-This extension presents Mermaid diagrams from markdown files as a focused, full-panel slideshow in a VS Code webview. Each diagram gets its own slide with keyboard/mouse navigation and live updates on edit. Package name: `mermaid-slideshow`, command prefix: `mermaidSlideshow`.
+This extension presents markdown content as a navigable slideshow in a VS Code webview. Supports full markdown rendering per slide (with Mermaid diagram support) and keyboard/mouse navigation with live updates on edit. Package name: `markdown-slideshow`, command prefix: `markdownSlideshow`.
 
 - Single source file: `src/extension.js`
 - No runtime dependencies - Mermaid loaded via CDN in webview

@@ -1,8 +1,8 @@
 {
-	"name": "mermaid-slideshow",
-	"displayName": "Mermaid Slideshow",
-	"description": "Preview Mermaid diagrams in a focused, navigable slideshow with keyboard controls and live updates as you edit.",
-	"version": "1.2.1",
+	"name": "markdown-slideshow",
+	"displayName": "Markdown Slideshow",
+	"description": "Present markdown files as a navigable slideshow in VS Code. Full markdown rendering per slide with keyboard controls, live updates, and Mermaid diagram support.",
+	"version": "0.1.0",
 	"icon": "assets/icon.png",
 	"publisher": "KunalPathak",
 	"author": "Kunal Pathak",
@@ -19,13 +19,12 @@
 		"Visualization"
 	],
 	"keywords": [
-		"mermaid",
+		"markdown",
 		"slideshow",
 		"presentation",
+		"slides",
+		"mermaid",
 		"diagrams",
-		"flowchart",
-		"sequence diagram",
-		"markdown",
 		"preview"
 	],
 	"qna": "marketplace",
@@ -40,25 +39,25 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "mermaidSlideshow.showPreview",
-				"title": "Show Mermaid Slideshow",
-				"category": "Mermaid",
+				"command": "markdownSlideshow.showPreview",
+				"title": "Show Markdown Slideshow",
+				"category": "Markdown",
 				"icon": "$(vm-running)"
 			}
 		],
 		"menus": {
 			"editor/title": [
 				{
-					"command": "mermaidSlideshow.showPreview",
+					"command": "markdownSlideshow.showPreview",
 					"when": "resourceLangId == markdown",
 					"group": "navigation"
 				}
 			]
 		},
 		"configuration": {
-			"title": "Mermaid Slideshow",
+			"title": "Markdown Slideshow",
 			"properties": {
-				"mermaidSlideshow.theme": {
+				"markdownSlideshow.theme": {
 					"type": "string",
 					"default": "default",
 					"enum": [

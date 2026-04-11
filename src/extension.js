@@ -63,7 +63,7 @@ function getNonce() {
  * @returns {string} Resolved Mermaid theme name
  */
 function resolveTheme() {
-	const setting = vscode.workspace.getConfiguration("mermaidSlideshow").get("theme", "default");
+	const setting = vscode.workspace.getConfiguration("markdownSlideshow").get("theme", "default");
 	if (setting !== "default") {
 		return setting;
 	}
@@ -91,7 +91,7 @@ function getWebviewContent(diagrams, nonce, theme) {
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">
-	<title>Mermaid Slideshow</title>
+	<title>Markdown Slideshow</title>
 	<style>
 		body {
 			display: flex;
@@ -149,14 +149,14 @@ function postDiagramUpdate(panel, diagrams) {
  * @param {vscode.ExtensionContext} context - Extension context provided by VS Code
  */
 function activate(context) {
-	console.log("mermaidSlideshow extension activated");
+	console.log("markdownSlideshow extension activated");
 
 	let currentPanel = undefined;
 	let currentDocument = undefined;
 	let debounceTimer = undefined;
 
 	const disposable = vscode.commands.registerCommand(
-		"mermaidSlideshow.showPreview",
+		"markdownSlideshow.showPreview",
 		function () {
 			const editor = vscode.window.activeTextEditor;
 			if (!editor) {
@@ -180,8 +180,8 @@ function activate(context) {
 				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
 			} else {
 				currentPanel = vscode.window.createWebviewPanel(
-					"mermaidSlideshow",
-					"Mermaid Slideshow",
+					"markdownSlideshow",
+					"Markdown Slideshow",
 					vscode.ViewColumn.Beside,
 					{ enableScripts: true }
 				);
@@ -222,7 +222,7 @@ function activate(context) {
 	const changeConfigSubscription = vscode.workspace.onDidChangeConfiguration(
 		(e) => {
 			if (
-				e.affectsConfiguration("mermaidSlideshow.theme") &&
+				e.affectsConfiguration("markdownSlideshow.theme") &&
 				currentPanel &&
 				currentDocument
 			) {
