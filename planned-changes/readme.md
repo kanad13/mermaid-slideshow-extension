@@ -2,9 +2,13 @@
 
 This folder `planned-changes` contains planning notes and reference snippets for upcoming feature work before it is fully applied to the extension source.
 
-At the moment, the main focus is **Markdown Slide Mode** (mixed markdown + Mermaid slides, updated navigation behavior, and related documentation/testing work).
+## Need for these changes
 
-## What is in here?
+The current github repository has 2 branches that serve 2 different VS Code extensions:
+1. Main branch: `mermaid-slideshow` extension that renders Mermaid diagrams from markdown files, with one diagram per slide.
+2. This branch: `markmaid-slideshow` extension that will render full markdown content on slides, including Markdown elements and Mermaid diagrams. Both branches will coexist in the repository, and changes will be cherry-picked between them as needed.
+
+## What is in this folder?
 
 - `plan.md` — the implementation plan, phased work breakdown, quality gates, and file-touch map
 - `code-snippets.md` — reference code snippets grouped by file and concern to support the plan
