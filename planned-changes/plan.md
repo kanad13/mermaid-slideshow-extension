@@ -77,7 +77,9 @@ Delete the two old selectors:
 
 **Change** `.slide-container` `align-items: center` → `align-items: flex-start` so tall slides start at the top edge instead of being vertically centered.
 
-**Change** `.slide-content` `align-items: center` → `align-items: stretch`.
+**Change** `.slide-content` `align-items: center` → `align-items: flex-start`.
+
+(`align-items: stretch` looks intuitive but causes the flex child to fill the container's fixed height, so tall-slide content overflows with `overflow: visible` but the parent's `overflow: auto` never triggers a scrollbar. `flex-start` lets `.slide-inner` grow to its natural content height and correctly activates the scrollbar on tall slides.)
 
 `.slide-content` remains the outer scroll container for tall slides. Keep vertical scrolling on `.slide-content`, not `.slide-inner`.
 
@@ -105,9 +107,21 @@ With:
 <div class="slide-inner"></div>
 ```
 
-### 2.3 — JavaScript: template variable
+### 2.3 — JavaScript: template variable and `goNext` rename
 
 Replace `const diagrams = {{DIAGRAMS_JSON}};` → `const slides = {{SLIDES_JSON}};`
+
+Also update `goNext` — the only function outside `renderSlide` and the message handler that references `diagrams`:
+
+```javascript
+function goNext() {
+    if (currentIndex < slides.length - 1) {
+        renderSlide(currentIndex + 1);
+    }
+}
+```
+
+(`goPrev` only checks `currentIndex > 0` — no `diagrams` reference, no change needed.)
 
 ### 2.4 — JavaScript: container selectors
 

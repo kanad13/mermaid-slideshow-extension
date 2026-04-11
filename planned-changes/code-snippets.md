@@ -163,7 +163,7 @@ These replace the old `.slide-content .mermaid` selector block and extend `.slid
     width: 100%;
     max-height: calc(100vh - 120px);
     display: flex;
-    align-items: stretch;   /* was: center */
+    align-items: flex-start;   /* was: center — NOT stretch: stretch fixes child height to container height, preventing tall-slide scrolling */
     justify-content: center;
     overflow: auto;
 }

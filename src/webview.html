@@ -19,7 +19,7 @@
 
 		.slide-container {
 			display: flex;
-			align-items: flex-start;
+			align-items: center;
 			justify-content: center;
 			height: 100vh;
 			padding: 40px 60px;
@@ -28,63 +28,14 @@
 
 		.slide-content {
 			width: 100%;
-			height: calc(100vh - 120px);
-			display: block;
+			max-height: calc(100vh - 120px);
+			display: flex;
+			align-items: center;
+			justify-content: center;
 			overflow: auto;
 		}
 
-		.slide-inner {
-			width: 100%;
-			max-width: 960px;
-			margin: 0 auto;
-			padding: 24px 32px;
-			background: var(--vscode-editor-background);
-			border-radius: 8px;
-			box-shadow: 0 0 0 1px var(--vscode-widget-border, rgba(128,128,128,0.35));
-			overflow: hidden;
-		}
-
-		.slide-inner h1,
-		.slide-inner h2,
-		.slide-inner h3,
-		.slide-inner h4,
-		.slide-inner h5,
-		.slide-inner h6 {
-			margin: 0 0 0.4em 0;
-		}
-
-		.slide-inner p {
-			margin: 0 0 0.6em 0;
-		}
-
-		.slide-inner ul,
-		.slide-inner ol {
-			margin-left: 1.3em;
-			margin-bottom: 0.7em;
-		}
-
-		.slide-inner pre {
-			margin: 0.6em 0;
-			background-color: var(--vscode-textCodeBlock-background);
-			border-radius: 4px;
-			padding: 10px 12px;
-			overflow-x: auto;
-		}
-
-		.slide-inner code {
-			background-color: var(--vscode-textCodeBlock-background);
-			padding: 2px 4px;
-			border-radius: 3px;
-			font-family: 'Courier New', Courier, monospace;
-			font-size: 0.9em;
-		}
-
-		.slide-inner pre code {
-			background: transparent;
-			padding: 0;
-		}
-
-		.slide-inner .mermaid {
+		.slide-content .mermaid {
 			background: transparent;
 			border: none;
 			text-align: center;
@@ -93,8 +44,7 @@
 
 		.slide-content .mermaid svg {
 			max-width: 100%;
-
-			width: auto;
+			max-height: calc(100vh - 140px);
 			height: auto;
 		}
 
@@ -179,7 +129,6 @@
 		const counter = document.querySelector('.slide-counter');
 		const prevBtn = document.querySelector('.nav-arrow.prev');
 		const nextBtn = document.querySelector('.nav-arrow.next');
-		const scrollContainer = document.querySelector('.slide-content');
 
 		async function renderSlide(index) {
 			currentIndex = index;
@@ -221,38 +170,13 @@
 
 		let scrollCooldown = false;
 		document.addEventListener('wheel', (e) => {
-			// Shift + wheel: scroll within the current slide only.
-			// If there is nothing to scroll, do nothing.
-			if (e.shiftKey) {
-				if (!scrollContainer) {
-					return;
-				}
-				// On many platforms Shift + wheel produces horizontal delta (deltaX)
-				// instead of vertical (deltaY). Use whichever axis has the larger magnitude.
-				const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-				if (!delta) {
-					return;
-				}
-				const before = scrollContainer.scrollTop;
-				scrollContainer.scrollTop += delta;
-				const after = scrollContainer.scrollTop;
-				if (after !== before) {
-					e.preventDefault();
-					e.stopPropagation();
-				}
-				return;
-			}
-
-			// Plain wheel: change slides.
 			if (scrollCooldown) return;
 			scrollCooldown = true;
 			setTimeout(() => { scrollCooldown = false; }, 300);
 
 			if (e.deltaY > 0) {
-				e.preventDefault();
 				goNext();
 			} else if (e.deltaY < 0) {
-				e.preventDefault();
 				goPrev();
 			}
 		});
