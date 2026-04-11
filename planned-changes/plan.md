@@ -1,5 +1,7 @@
 # Implementation Plan: Markdown Slide Mode
 
+Implementation sequencing lives here; `planned-changes/code-snippets.md` groups snippets by target file / concern rather than strict phase order.
+
 ## Phase 1 — `src/extension.js`: Add new functions, update dispatcher
 
 **No deletions. Pure additions plus rename of one function and its call sites.**
@@ -7,13 +9,13 @@
 ### 1.1 — Add three functions after `extractMermaidBlocks` (~line 40)
 
 Add `hasSlideDelimiter`, `splitSlides`, and `getSlides` in that order.
-Full source with JSDoc is in `pr_review_docs/code-snippets.md` → "Functions for extension.js".
+Full source with JSDoc is in `planned-changes/code-snippets.md` → "Functions for `src/extension.js`".
 
 ### 1.2 — Update `getWebviewContent`
 
 - Rename parameter `diagrams` → `slides`
 - Update JSDoc to describe slide mode
-- Change empty-state message to reference `<!-- slide -->` delimiter, not `---`
+- Change empty-state message to exactly: `No slides found in this file. Add a \`\`\`mermaid\`\`\` block in classic mode, or add <!-- slide --> HTML comments on their own line to divide the file into mixed markdown and diagram slides.`
 - Change template placeholder: `{{DIAGRAMS_JSON}}` → `{{SLIDES_JSON}}`
 - Add XSS protection to JSON injection:
   ```javascript
@@ -29,6 +31,7 @@ There are exactly 4 call sites in `activate()`:
 - Inside `changeColorThemeSubscription`
 
 Replace each one. Use `slides` as the local variable name throughout.
+Keep the existing 300ms debounce interval in `changeDocumentSubscription`.
 
 ### 1.4 — Rename `postDiagramUpdate` → `postSlidesUpdate`
 
@@ -66,13 +69,20 @@ There should be zero test regressions. The new exported functions are tested in 
 user-select: none;
 ```
 
-**Replace** `.slide-content .mermaid { ... }` and `.slide-content .mermaid svg { ... }` selectors.
-Remove both — they target the old structure.
+Delete the two old selectors:
+- `.slide-content .mermaid { ... }`
+- `.slide-content .mermaid svg { ... }`
+
+(These targeted the old structure. The new `.slide-inner` card layout below replaces them.)
+
+**Change** `.slide-container` `align-items: center` → `align-items: flex-start` so tall slides start at the top edge instead of being vertically centered.
 
 **Change** `.slide-content` `align-items: center` → `align-items: stretch`.
 
+`.slide-content` remains the outer scroll container for tall slides. Keep vertical scrolling on `.slide-content`, not `.slide-inner`.
+
 **Add** after `.slide-content { ... }` block: the `.slide-inner` card styles and all
-typography rules. Full CSS source is in `extracted-code.md` → "CSS additions for webview.html".
+typography rules. Full CSS source is in `planned-changes/code-snippets.md` → "CSS additions for `src/webview.html`".
 
 
 **Add `<hr>` rule** inside `.slide-inner` styles:
@@ -99,19 +109,27 @@ With:
 
 Replace `const diagrams = {{DIAGRAMS_JSON}};` → `const slides = {{SLIDES_JSON}};`
 
-### 2.4 — JavaScript: container selector
+### 2.4 — JavaScript: container selectors
 
-Replace `document.querySelector('.slide-content')` → `document.querySelector('.slide-inner')`
+Replace `document.querySelector('.slide-content')` → `document.querySelector('.slide-inner')` for `container`.
+
+Keep a separate `scrollContainer` reference to `.slide-content` for internal slide scrolling:
+
+```javascript
+const container = document.querySelector('.slide-inner');
+const scrollContainer = document.querySelector('.slide-content');
+```
 
 ### 2.5 — JavaScript: add helper functions
 
 Add `escapeHtml()`, `renderInline()`, and `renderMarkdownToHtml()` before `renderSlide`.
-Full source is in `pr_review_docs/code-snippets.md` → "JavaScript functions for webview.html".
+Full source is in `planned-changes/code-snippets.md` → "JavaScript functions for `src/webview.html`".
 
 ### 2.6 — JavaScript: update `renderSlide`
 
 Replace the function body. The new version:
 - Calls `renderMarkdownToHtml(slides[currentIndex])` to build the innerHTML
+- Resets `.slide-content` scroll position to the top on every slide change
 - Calls `mermaid.run({ querySelector: '.mermaid' })` after setting innerHTML
 - **Restores** the catch-block UI error message (this was deleted in the PR — regression)
 
@@ -120,6 +138,7 @@ async function renderSlide(index) {
     currentIndex = index;
     const markdown = slides[currentIndex];
     container.innerHTML = renderMarkdownToHtml(markdown);
+    scrollContainer.scrollTop = 0;
     try {
         await mermaid.run({ querySelector: '.mermaid' });
     } catch (error) {
@@ -140,11 +159,29 @@ Add PageDown, PageUp, Space to the `keydown` listener:
 if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
 ```
 
-### 2.8 — JavaScript: update `message` event handler
+### 2.8 — JavaScript: wheel navigation and in-slide scrolling
 
-Change `message.diagrams` → `message.slides`, `diagrams.length` → `slides.length`.
+Preserve the branch's wheel behavior, but align it with the final slide-mode structure:
 
-### 2.9 — JavaScript: update initial render
+- Plain wheel changes slides (debounced, same navigation semantics as arrow keys)
+- `Shift + wheel` scrolls within `.slide-content` without changing slides
+- For `Shift + wheel`, use whichever axis has the larger magnitude (`deltaY` or `deltaX`) so macOS trackpads and horizontal-wheel emulation behave consistently
+- Do not consume the plain-wheel event or start the cooldown when already at the first/last slide and no navigation can occur
+- Only call `preventDefault()` / `stopPropagation()` when internal scrolling or slide navigation actually happens
+
+Full source is in `planned-changes/code-snippets.md` → "Wheel navigation and internal scrolling for `src/webview.html`".
+
+### 2.9 — JavaScript: update `message` event handler
+
+Locate `window.addEventListener('message', ...)` in the script and update the handler in place:
+
+- Change `message.diagrams` → `message.slides`
+- Change `diagrams.length` → `slides.length`
+- Change any `diagrams.push(...)` update logic to use `slides.push(...)`
+
+Full source is in `planned-changes/code-snippets.md` → "Message event handler update for `src/webview.html`".
+
+### 2.10 — JavaScript: update initial render
 
 Replace `renderSlide(0)` with the null-safe version:
 ```javascript
@@ -161,6 +198,10 @@ if (slides.length === 0) {
 **Quality gate:** F5 debug launch. Test with `examples/test.md` (classic mode —
 no `<!-- slide -->` — should show one diagram per slide). Test with a new file
 containing `<!-- slide -->` (slide mode — should show full markdown per section).
+Also verify a tall slide: the scrollbar appears on `.slide-content`, `Shift + wheel`
+scrolls inside the current slide, and plain wheel still changes slides. Navigate
+away from a scrolled tall slide and confirm the next slide opens at the top
+(`scrollContainer.scrollTop` resets on slide change).
 
 ---
 
@@ -180,7 +221,7 @@ Add after the existing `extractMermaidBlocks` describe block:
 - `describe("hasSlideDelimiter", ...)` — tests for the detection function
 - `describe("getSlides", ...)` — integration-style tests for the dispatcher
 
-Full test source is in `extracted-code.md` → "Tests for extension.test.js".
+Full test source is in `planned-changes/code-snippets.md` → "Tests for `test/extension.test.js`".
 
 Note: The PR's tests used `---` as the delimiter and were inside the wrong
 `describe` block. The tests here use `<!-- slide -->` and are in their own blocks.
@@ -198,6 +239,8 @@ New file that demonstrates slide mode. Include:
 - A title-only slide (markdown prose, no diagram)
 - A slide with text + a Mermaid flowchart
 - A slide with a bulleted list + a sequence diagram
+- A deliberately tall slide (enough content to exceed the viewport) to verify the
+    `.slide-content` scrollbar and `Shift + wheel` internal scrolling behavior
 - A slide with mermaid-only content (to verify classic mermaid still renders)
 
 The `<!-- slide -->` delimiters between sections should be visible and clearly
@@ -235,6 +278,7 @@ Add an `[Unreleased]` section:
 ### Added
 - Slide mode: add `<!-- slide -->` HTML comments to divide a file into mixed-content slides (markdown text and diagrams on the same slide)
 - Keyboard navigation: PageDown, PageUp, and Space bar added alongside existing arrow keys
+- Tall slide scrolling: hold `Shift` while using the mouse wheel / trackpad to scroll within the current slide without changing slides
 - Markdown rendering: headings, paragraphs, lists, blockquotes, horizontal rules, inline code/bold/italic rendered in slide mode
 - YAML front matter is automatically skipped and not shown as slide content
 
@@ -259,54 +303,14 @@ Add `"slides"` and `"mixed content"` to the `keywords` array if not already pres
 
 No version bump here — that happens separately when releasing.
 
----
+### 5.4 — `readme.md`
 
-## File Touch Matrix
+Update the README so the feature is discoverable from the marketplace/repo front page.
+Add or revise documentation for:
 
-Every file is touched at most once across phases.
-
-| File | Phase | Change type |
-|---|---|---|
-| `src/extension.js` | 1 | Add 3 functions (with YAML skip in splitSlides), rename 1, replace 4 call sites, update exports |
-| `src/webview.html` | 2 | CSS: remove 2, add 11 rules (incl. `<hr>`); HTML: swap 1 element; JS: add 3 functions + `<hr>` branch, update 5 blocks |
-| `test/extension.test.js` | 3 | Update 1 import, add 3 describe blocks (~40 lines) |
-| `examples/test.md` | — | No change |
-| `examples/slide-mode-demo.md` | 4 | New file |
-| `CLAUDE.md` | 5 | ~15 lines added |
-| `CHANGELOG.md` | 5 | ~25 lines added |
-| `package.json` | 5 | description + keywords update |
-
----
-
-## Commit Plan
-
-One commit per phase. Each commit must individually pass `npm test`.
-
-1. `feat: add hasSlideDelimiter, splitSlides, getSlides; auto-detect slide mode`
-2. `feat: add markdown renderer and typography to webview; restore error handling`
-3. `test: add splitSlides, hasSlideDelimiter, getSlides test suites`
-4. `docs: add slide-mode-demo.md example`
-5. `docs: update CLAUDE.md, CHANGELOG, package.json for slide mode`
-
----
-
-## Things NOT to Do
-
-- Do NOT use `---` as slide delimiter anywhere — in code, tests, comments, or docs
-- Do NOT remove `extractMermaidBlocks` — it is the engine for classic mode
-- Do NOT add a VS Code setting for slide mode — auto-detection is the design
-- Do NOT add a markdown parser npm package
-- Do NOT modify `resolveTheme`, `getNonce`, or any of the VS Code event subscription wiring
-- Do NOT modify or remove existing tests in the `extractMermaidBlocks` describe block
-- Do NOT HTML-escape content inside Mermaid fences (see `rationale.md` → Decision 7)
-- Do NOT use `.slide-inner { overflow: hidden }` — use `overflow: visible` (see findings.md Issue 9)
-
----
-
-## Known Limitations (acceptable, document but do not fix in this pass)
-
-- Nested lists not supported (only flat)
-- Markdown links `[text](url)` rendered as raw text
-- Tables (GFM pipe syntax) not rendered
-- Images not rendered (CSP blocks most sources anyway)
-- Multi-line blockquotes collapse to single-line
+- The two modes of operation: classic mode vs slide mode
+- The slide delimiter: `<!-- slide -->`
+- Mixed-content slides (markdown + Mermaid on the same slide)
+- Navigation controls: arrow keys, PageUp/PageDown, Space, mouse wheel
+- Tall slide behavior: `Shift + wheel` scrolls within the current slide, while plain wheel changes slides
+- A short example snippet showing `<!-- slide -->` with at least one markdown section and one Mermaid block

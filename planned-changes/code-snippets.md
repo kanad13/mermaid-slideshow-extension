@@ -1,5 +1,7 @@
 # Code Snippets
 
+Use `planned-changes/plan.md` for sequencing. This file groups snippets by target file / concern so related code stays together even if the headings are not in exact phase order.
+
 ---
 
 ## Functions for `src/extension.js`
@@ -140,10 +142,23 @@ function getSlides(rawText) {
 
 These replace the old `.slide-content .mermaid` selector block and extend `.slide-content`.
 
+### Change to `.slide-container`
+
+```css
+.slide-container {
+    display: flex;
+    align-items: flex-start;   /* was: center */
+    justify-content: center;
+    height: 100vh;
+    padding: 40px 60px;
+    position: relative;
+}
+```
+
 ### Change to `.slide-content`
 
 ```css
-/* Change align-items from center to stretch */
+/* .slide-content remains the vertical scroll container for tall slides */
 .slide-content {
     width: 100%;
     max-height: calc(100vh - 120px);
@@ -279,7 +294,6 @@ function renderMarkdownToHtml(markdown) {
     let html = '';
     let inMermaid = false;
     let inCode = false;
-    let codeLang = '';
     let inMermaidColon = false;
     let inList = false;
     let listType = '';
@@ -316,13 +330,11 @@ function renderMarkdownToHtml(markdown) {
         if (!inCode && /^```/.test(line)) {
             closeList();
             inCode = true;
-            codeLang = line.slice(3).trim();
             html += '<pre><code>';
             continue;
         }
         if (inCode && /^```\s*$/.test(line)) {
             inCode = false;
-            codeLang = '';
             html += '</code></pre>';
             continue;
         }
@@ -407,6 +419,118 @@ function renderMarkdownToHtml(markdown) {
 
 <!-- With: -->
 <div class="slide-inner"></div>
+```
+
+---
+
+## Selector updates for `src/webview.html`
+
+```javascript
+const container = document.querySelector('.slide-inner');
+const counter = document.querySelector('.slide-counter');
+const prevBtn = document.querySelector('.nav-arrow.prev');
+const nextBtn = document.querySelector('.nav-arrow.next');
+const scrollContainer = document.querySelector('.slide-content');
+```
+
+---
+
+## `renderSlide` update for `src/webview.html`
+
+```javascript
+async function renderSlide(index) {
+    currentIndex = index;
+    const markdown = slides[currentIndex];
+    container.innerHTML = renderMarkdownToHtml(markdown);
+    scrollContainer.scrollTop = 0;
+    try {
+        await mermaid.run({ querySelector: '.mermaid' });
+    } catch (error) {
+        console.error('Mermaid rendering failed:', error);
+        container.innerHTML = '<p style="color: var(--vscode-errorForeground);">Failed to render slide ' + (currentIndex + 1) + ' — check the Mermaid syntax.</p>';
+    }
+    counter.textContent = (currentIndex + 1) + ' / ' + slides.length;
+    prevBtn.disabled = currentIndex === 0;
+    nextBtn.disabled = currentIndex === slides.length - 1;
+}
+```
+
+---
+
+## Wheel navigation and internal scrolling for `src/webview.html`
+
+```javascript
+let scrollCooldown = false;
+document.addEventListener('wheel', (e) => {
+    // Shift + wheel: scroll within the current slide only.
+    if (e.shiftKey) {
+        if (!scrollContainer) {
+            return;
+        }
+        // On many platforms Shift + wheel produces horizontal delta (deltaX)
+        // instead of vertical (deltaY). Use whichever axis has the larger magnitude.
+        const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+        if (!delta) {
+            return;
+        }
+        const before = scrollContainer.scrollTop;
+        scrollContainer.scrollTop += delta;
+        const after = scrollContainer.scrollTop;
+        if (after !== before) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        return;
+    }
+
+    // Plain wheel: change slides.
+    const canGoNext = e.deltaY > 0 && currentIndex < slides.length - 1;
+    const canGoPrev = e.deltaY < 0 && currentIndex > 0;
+    if (!canGoNext && !canGoPrev) {
+        return;
+    }
+
+    if (scrollCooldown) {
+        return;
+    }
+    scrollCooldown = true;
+    setTimeout(() => {
+        scrollCooldown = false;
+    }, 300);
+
+    if (canGoNext) {
+        e.preventDefault();
+        goNext();
+    } else if (canGoPrev) {
+        e.preventDefault();
+        goPrev();
+    }
+});
+```
+
+---
+
+## Message event handler update for `src/webview.html`
+
+```javascript
+window.addEventListener('message', (event) => {
+    const message = event.data;
+    if (message.type === 'update') {
+        slides.length = 0;
+        slides.push(...message.slides);
+
+        if (slides.length === 0) {
+            container.innerHTML = '<p style="color: var(--vscode-descriptionForeground);">No slides found.</p>';
+            counter.textContent = '';
+            document.body.classList.add('single-slide');
+            return;
+        }
+
+        document.body.classList.toggle('single-slide', slides.length === 1);
+        const newIndex = Math.min(currentIndex, slides.length - 1);
+        renderSlide(newIndex);
+    }
+});
 ```
 
 ---
@@ -537,6 +661,13 @@ describe("getSlides", () => {
         const result = getSlides(input);
         assert.match(result[0], /Some text/);
         assert.match(result[1], /More text/);
+    });
+
+    it("slide mode: preserves mermaid-only slides", () => {
+        const input = "# Intro\n<!-- slide -->\n```mermaid\ngraph TD\n  A-->B\n```";
+        const result = getSlides(input);
+        assert.equal(result.length, 2);
+        assert.match(result[1], /graph TD/);
     });
 
 });
