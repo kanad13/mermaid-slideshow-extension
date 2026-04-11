@@ -2,9 +2,9 @@ name: CI Quality Checks
 
 on:
   push:
-    branches: [ main ]
+    branches: [ markmaid-slideshow ]
   pull_request:
-    branches: [ main ]
+    branches: [ markmaid-slideshow ]
 
 jobs:
   lint:
