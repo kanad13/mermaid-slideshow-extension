@@ -1,13 +1,5 @@
 # Implementation Plan: Markdown Slide Mode
 
-**Prerequisite:** Source code is at `main` baseline. Read `findings.md` and
-`rationale.md` before executing. Use `extracted-code.md` as reference for
-functions to implement — do not copy blindly, read the annotations.
-
-**Run before starting:** `npm test` on the clean main baseline must pass.
-
----
-
 ## Phase 1 — `src/extension.js`: Add new functions, update dispatcher
 
 **No deletions. Pure additions plus rename of one function and its call sites.**
@@ -15,11 +7,7 @@ functions to implement — do not copy blindly, read the annotations.
 ### 1.1 — Add three functions after `extractMermaidBlocks` (~line 40)
 
 Add `hasSlideDelimiter`, `splitSlides`, and `getSlides` in that order.
-Full source with JSDoc is in `extracted-code.md` → "Functions for extension.js".
-Read the annotations — particularly:
-- The `<!-- slide -->` delimiter regex
-- The YAML front matter skip at the start of `splitSlides`
-- The mermaid-fence wrapping in `getSlides`
+Full source with JSDoc is in `pr_review_docs/code-snippets.md` → "Functions for extension.js".
 
 ### 1.2 — Update `getWebviewContent`
 
@@ -65,8 +53,7 @@ module.exports = {
 Mention both modes in the function description.
 
 **Quality gate:** `npm test` must pass after Phase 1 (no webview changes yet).
-There should be zero test regressions. The new exported functions are tested
-in Phase 3.
+There should be zero test regressions. The new exported functions are tested in Phase 3.
 
 ---
 
@@ -87,9 +74,6 @@ Remove both — they target the old structure.
 **Add** after `.slide-content { ... }` block: the `.slide-inner` card styles and all
 typography rules. Full CSS source is in `extracted-code.md` → "CSS additions for webview.html".
 
-⚠️ **Fix from PR:** Change `.slide-inner { overflow: hidden }` → `.slide-inner { overflow: visible }`.
-The PR's `overflow: hidden` clips tall slide content inside the flex container.
-See `findings.md` → Issue 9.
 
 **Add `<hr>` rule** inside `.slide-inner` styles:
 ```css
@@ -122,20 +106,7 @@ Replace `document.querySelector('.slide-content')` → `document.querySelector('
 ### 2.5 — JavaScript: add helper functions
 
 Add `escapeHtml()`, `renderInline()`, and `renderMarkdownToHtml()` before `renderSlide`.
-Full source is in `extracted-code.md` → "JavaScript functions for webview.html".
-
-**Critical corrections from the PR:**
-1. Mermaid content must NOT be HTML-escaped (see `rationale.md` → Decision 7)
-2. `renderMarkdownToHtml` must handle `---`/`***`/`___` lines as `<hr>` — this
-   was not possible in the PR (separator collision) but is now correct behaviour.
-   Add this branch before the heading/paragraph fallthrough:
-   ```javascript
-   // Horizontal rule (---, ***, ___)
-   if (/^\s*[-*_]{3,}\s*$/.test(line)) {
-       html += '<hr />';
-       continue;
-   }
-   ```
+Full source is in `pr_review_docs/code-snippets.md` → "JavaScript functions for webview.html".
 
 ### 2.6 — JavaScript: update `renderSlide`
 
@@ -164,6 +135,7 @@ async function renderSlide(index) {
 ### 2.7 — JavaScript: keyboard shortcuts
 
 Add PageDown, PageUp, Space to the `keydown` listener:
+
 ```javascript
 if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
 ```
@@ -220,11 +192,7 @@ should be modified or removed.
 
 ## Phase 4 — `examples/` updates
 
-### 4.1 — Do NOT modify `examples/test.md`
-
-This file has no `<!-- slide -->` delimiters. It tests classic mode. Leave it as-is.
-
-### 4.2 — Create `examples/slide-mode-demo.md`
+### 4.1 — Create `examples/slide-mode-demo.md`
 
 New file that demonstrates slide mode. Include:
 - A title-only slide (markdown prose, no diagram)
@@ -260,6 +228,7 @@ Update the "Two extraction syntaxes" bullet to mention slide mode.
 ### 5.2 — `CHANGELOG.md`
 
 Add an `[Unreleased]` section:
+
 ```markdown
 ## [Unreleased]
 

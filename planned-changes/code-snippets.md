@@ -1,11 +1,4 @@
-# Extracted Code from `feat/render-markdown-on-slides`
-
-This file preserves the useful code salvaged from the discarded PR branch.
-Do NOT copy-paste blindly — read the annotations (marked `⚠️`) before using any section.
-The annotations highlight what needs to change from the PR's original.
-
-The source code has been reset to the `main` baseline. This file is the only
-record of the PR's implementation.
+# Code Snippets
 
 ---
 
@@ -32,9 +25,6 @@ function hasSlideDelimiter(rawText) {
 ```
 
 ### `splitSlides` — ADAPTED from PR (delimiter changed + YAML front matter skip added)
-
-⚠️ The PR used `/^---\s*$/` as the delimiter. Changed to `<!-- slide -->` regex.
-⚠️ NEW: Skip YAML front matter at the start of the file. The PR did not do this.
 
 ```javascript
 /**
@@ -118,8 +108,6 @@ function splitSlides(rawText) {
 ```
 
 ### `getSlides` — NEW, not from PR
-
-⚠️ This function is not in the PR. It is the dispatcher that provides backward compatibility.
 
 ```javascript
 /**
@@ -284,15 +272,6 @@ function renderInline(text) {
 
 ### `renderMarkdownToHtml` — ADAPTED from PR (critical mermaid escaping fix)
 
-⚠️ **Critical change from the PR:** The PR used `escapeHtml(line)` for Mermaid content
-too, which worked accidentally via `textContent` decoding. The corrected version
-uses a separate `inMermaid` flag and does NOT escape Mermaid content. Generic
-non-mermaid code blocks ARE still escaped.
-
-⚠️ **Heading regex change from the PR:** The PR used `if (/^\s*#\s+/.test(line))` etc.
-as separate if/else branches. The version below uses `line.match(/^(#{1,6})\s+(.*)/)`
-for a more concise single branch. Either approach is correct — use whichever
-is cleaner in context.
 
 ```javascript
 function renderMarkdownToHtml(markdown) {
@@ -435,8 +414,6 @@ function renderMarkdownToHtml(markdown) {
 ## Tests for `test/extension.test.js`
 
 Add these as new `describe` blocks AFTER the existing `extractMermaidBlocks` block.
-⚠️ The PR's tests used `---` as the delimiter and were inside the wrong describe block.
-These use `<!-- slide -->` and are in their own blocks.
 
 ```javascript
 describe("splitSlides", () => {
