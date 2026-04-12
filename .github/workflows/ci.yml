@@ -1,20 +1,15 @@
-name: CI and Deployment
+name: Branch CI
 
 on:
   push:
     branches: [ markmaid-slideshow ]
 
 jobs:
-  lint-and-test:
+  quality-checks:
     runs-on: ubuntu-latest
-    outputs:
-      changed: ${{ steps.version_check.outputs.changed }}
-      new_version: ${{ steps.version_check.outputs.new_version }}
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -28,6 +23,9 @@ jobs:
       - name: Run linter
         run: npm run lint
 
+      - name: Run unit tests
+        run: node --test 'test/**/*.test.js'
+
       - name: Package extension
         run: npm run package
 
@@ -39,63 +37,12 @@ jobs:
           fi
           echo "Package created successfully"
 
-      - name: Check package.json version change
-        id: version_check
-        run: |
-          # Get previous and current version of package.json to see if we should release
-          git fetch origin ${{ github.ref_name }} --depth=2 || true
-
-          # Use diff to see if 'version' line changed in package.json
-          if git diff HEAD^ HEAD package.json | grep '^+  "version"'; then
-            echo "Version bumped!"
-            VERSION=$(node -p "require('./package.json').version")
-            echo "new_version=$VERSION" >> $GITHUB_OUTPUT
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "No version bump detected."
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-
   release:
-    needs: lint-and-test
-    if: needs.lint-and-test.outputs.changed == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Package extension
-        run: npm run package
-
-      - name: Create Git Tag
-        env:
-          NEW_VERSION: ${{ needs.lint-and-test.outputs.new_version }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "v$NEW_VERSION"
-          git push origin "v$NEW_VERSION"
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ needs.lint-and-test.outputs.new_version }}
-          files: '*.vsix'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish to VS Code Marketplace
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: npx @vscode/vsce publish --pat "$VSCE_PAT"
+    needs: quality-checks
+    if: startsWith(github.event.head_commit.message, 'chore: release v')
+    uses: ./.github/workflows/release.yml
+    secrets: inherit
+    with:
+      branch_name: ${{ github.ref_name }}
+      commit_sha: ${{ github.sha }}
+      commit_message: ${{ github.event.head_commit.message }}
