@@ -15,9 +15,10 @@ Full source with JSDoc is in `planned-changes/code-snippets.md` → "Functions f
 
 - Rename parameter `diagrams` → `slides`
 - Update JSDoc to describe slide mode
-- Change empty-state message to exactly: `No slides found in this file. Add a \`\`\`mermaid\`\`\` block in classic mode, or add <!-- slide --> HTML comments on their own line to divide the file into mixed markdown and diagram slides.`
+- Change empty-state message to exactly: `No slides found in this file. Add a mermaid block in classic mode, or add <!-- slide --> HTML comments on their own line to divide the file into mixed markdown and diagram slides.`
 - Change template placeholder: `{{DIAGRAMS_JSON}}` → `{{SLIDES_JSON}}`
 - Add XSS protection to JSON injection:
+
   ```javascript
   html = html.replace("{{SLIDES_JSON}}", JSON.stringify(slides).replace(/</g, "\\u003c"));
   ```
@@ -145,7 +146,7 @@ Replace the function body. The new version:
 - Calls `renderMarkdownToHtml(slides[currentIndex])` to build the innerHTML
 - Resets `.slide-content` scroll position to the top on every slide change
 - Calls `mermaid.run({ querySelector: '.mermaid' })` after setting innerHTML
-- **Restores** the catch-block UI error message (this was deleted in the PR — regression)
+- **Restores** the catch-block UI error message
 
 ```javascript
 async function renderSlide(index) {
@@ -237,8 +238,6 @@ Add after the existing `extractMermaidBlocks` describe block:
 
 Full test source is in `planned-changes/code-snippets.md` → "Tests for `test/extension.test.js`".
 
-Note: The PR's tests used `---` as the delimiter and were inside the wrong
-`describe` block. The tests here use `<!-- slide -->` and are in their own blocks.
 
 **Quality gate:** `npm test` must pass with all new tests green. No existing tests
 should be modified or removed.

@@ -1,6 +1,6 @@
 # Development Guide
 
-A comprehensive guide to developing, testing, and releasing the Mermaid Slideshow extension.
+A comprehensive guide to developing, testing, and releasing the Markdown Slideshow extension.
 
 ## 1. The Big Picture: Who Does What?
 

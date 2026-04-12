@@ -8,7 +8,7 @@ Use `planned-changes/plan.md` for sequencing. This file groups snippets by targe
 
 These go after `extractMermaidBlocks()` (~line 40 in extension.js).
 
-### `hasSlideDelimiter` — NEW, not from PR
+### `hasSlideDelimiter`
 
 ```javascript
 /**
@@ -26,7 +26,7 @@ function hasSlideDelimiter(rawText) {
 }
 ```
 
-### `splitSlides` — ADAPTED from PR (delimiter changed + YAML front matter skip added)
+### `splitSlides`
 
 ```javascript
 /**
@@ -109,7 +109,7 @@ function splitSlides(rawText) {
 }
 ```
 
-### `getSlides` — NEW, not from PR
+### `getSlides`
 
 ```javascript
 /**
@@ -257,7 +257,7 @@ user-select: none;
 
 Add these inside the `<script type="module">` block, before `renderSlide`.
 
-### `escapeHtml` — from PR, unchanged
+### `escapeHtml`
 
 ```javascript
 function escapeHtml(str) {
@@ -268,7 +268,7 @@ function escapeHtml(str) {
 }
 ```
 
-### `renderInline` — from PR, unchanged
+### `renderInline`
 
 ```javascript
 function renderInline(text) {
@@ -285,7 +285,7 @@ function renderInline(text) {
 }
 ```
 
-### `renderMarkdownToHtml` — ADAPTED from PR (critical mermaid escaping fix)
+### `renderMarkdownToHtml`
 
 
 ```javascript
