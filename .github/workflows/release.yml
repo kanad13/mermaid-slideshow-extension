@@ -1,32 +1,29 @@
 name: Release Publish
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
-      branch_name:
+      version:
+        description: 'Version to release (semver without v prefix, e.g. 1.2.3)'
         required: true
         type: string
-      commit_sha:
-        required: true
-        type: string
-      commit_message:
-        required: true
-        type: string
-    secrets:
-      VSCE_PAT:
-        required: true
 
 jobs:
   publish:
-    if: ${{ inputs.branch_name == 'markmaid-slideshow' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
+      - name: Validate branch
+        run: |
+          if [[ "${{ github.ref_name }}" != "markmaid-slideshow" ]]; then
+            echo "This workflow must be run from the markmaid-slideshow branch. Got: ${{ github.ref_name }}"
+            exit 1
+          fi
+
       - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -38,35 +35,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Validate release commit
-        id: release_meta
-        env:
-          COMMIT_MESSAGE: ${{ inputs.commit_message }}
+      - name: Validate version input format
         run: |
-          FIRST_LINE=$(printf '%s\n' "$COMMIT_MESSAGE" | head -n1)
-
-          if [[ ! "$FIRST_LINE" =~ ^chore:\ release\ v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
-            echo "Release commits must use the exact message: chore: release vX.Y.Z"
+          if [[ ! "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Input version '${{ inputs.version }}' is not valid semver (expected X.Y.Z)."
             exit 1
           fi
 
-          RELEASE_VERSION="${BASH_REMATCH[1]}"
+      - name: Validate version matches package.json
+        run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-
-          if [[ "$PACKAGE_VERSION" != "$RELEASE_VERSION" ]]; then
-            echo "package.json version ($PACKAGE_VERSION) does not match release commit version ($RELEASE_VERSION)."
+          if [[ "$PACKAGE_VERSION" != "${{ inputs.version }}" ]]; then
+            echo "package.json version ($PACKAGE_VERSION) does not match release input version (${{ inputs.version }})."
             exit 1
           fi
 
-          echo "version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+      - name: Validate CHANGELOG entry
+        run: |
+          if ! grep -qF "## [${{ inputs.version }}]" CHANGELOG.md; then
+            echo "No CHANGELOG.md entry found for version ${{ inputs.version }}."
+            echo "Add a '## [${{ inputs.version }}]' section before releasing."
+            exit 1
+          fi
 
       - name: Ensure release tag does not already exist
-        env:
-          RELEASE_TAG: ${{ steps.release_meta.outputs.tag }}
         run: |
+          RELEASE_TAG="v${{ inputs.version }}"
           git fetch --tags origin
-
           if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
             echo "Tag $RELEASE_TAG already exists on origin."
             exit 1
@@ -84,9 +79,8 @@ jobs:
           echo "Package created successfully"
 
       - name: Create Git Tag
-        env:
-          RELEASE_TAG: ${{ steps.release_meta.outputs.tag }}
         run: |
+          RELEASE_TAG="v${{ inputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "$RELEASE_TAG"
@@ -95,13 +89,14 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.release_meta.outputs.tag }}
-          name: ${{ steps.release_meta.outputs.tag }}
+          tag_name: v${{ inputs.version }}
+          name: v${{ inputs.version }}
           files: '*.vsix'
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to VS Code Marketplace
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: npx @vscode/vsce publish --pat "$VSCE_PAT"
+        run: ./node_modules/.bin/vsce publish --pat "$VSCE_PAT"

@@ -36,13 +36,3 @@ jobs:
             exit 1
           fi
           echo "Package created successfully"
-
-  release:
-    needs: quality-checks
-    if: startsWith(github.event.head_commit.message, 'chore: release v')
-    uses: ./.github/workflows/release.yml
-    secrets: inherit
-    with:
-      branch_name: ${{ github.ref_name }}
-      commit_sha: ${{ github.sha }}
-      commit_message: ${{ github.event.head_commit.message }}
