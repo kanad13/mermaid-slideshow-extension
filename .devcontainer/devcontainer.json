@@ -1,0 +1,21 @@
+{
+	"name": "Node.js",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": "."
+	},
+	// The Node.js image uses 'node' as the default user
+	"remoteUser": "node",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"KunalPathak.lightweight-markdown-preview",
+				"KunalPathak.mermaid-slideshow",
+				"KunalPathak.safe-pdf-viewer",
+				"esbenp.prettier-vscode"
+			]
+		}
+	},
+	// Installs from the files inside the .devcontainer folder
+	"postCreateCommand": "cd .devcontainer && npm install && chmod +x welcome.sh && ./welcome.sh"
+}
