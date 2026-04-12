@@ -1,49 +1,49 @@
 # Development Guide
 
-This document is the source of truth for how development and release automation work on the `markmaid-slideshow` branch.
+This is the single source of truth for developing, testing, and releasing on the `markmaid-slideshow` branch.
 
 
-## Branch identity
+## What This Branch Builds
 
-This repository currently carries two extension tracks:
+This repository carries two independent VS Code extension tracks:
 
-- `main` continues to represent the published `mermaid-slideshow` extension.
-- `markmaid-slideshow` is building the separate `markdown-slideshow` extension.
+| Branch | Extension ID | What it does |
+| --- | --- | --- |
+| `main` | `mermaid-slideshow` | Renders Mermaid diagrams as a slideshow (published, stable) |
+| `markmaid-slideshow` | `markdown-slideshow` | Renders full Markdown content as a navigable slideshow (this branch) |
 
-That split matters because the automation in this document is **branch-specific**. Everything below applies to `markmaid-slideshow` only.
+The two extensions are independent. Work on this branch never touches `main` and is never merged into it.
 
-## Workflow trigger map
+**Key source files on this branch:**
 
-There are two workflow files in the repository, but only one normal developer action: **push your commit to `markmaid-slideshow`**.
+| File | Purpose |
+| --- | --- |
+| `src/extension.js` | All extension logic: activation, slide extraction, webview panel management |
+| `src/webview.html` | Webview renderer: Markdown-to-HTML, Mermaid via CDN, slide navigation |
+| `test/` | Node.js unit tests |
+| `examples/test.md` | Manual test file for the Extension Development Host |
 
-| Workflow file | Who starts it | When it starts | What it does |
-| --- | --- | --- | --- |
-| `.github/workflows/ci.yml` | GitHub Actions automatically | Every push to `markmaid-slideshow` | Installs dependencies, runs lint, runs unit tests, packages the extension, and verifies the `.vsix` |
-| `.github/workflows/release.yml` | `ci.yml` automatically | Only after CI passes for a release commit | Validates the release commit, validates the version, creates the tag, creates the GitHub Release, and publishes to the VS Code Marketplace |
+The extension supports two slide modes, auto-detected per file:
+- **Classic mode** (no `<!-- slide -->` in the file): each Mermaid code block is one slide
+- **Slide mode** (file contains `<!-- slide -->`): content is split at `<!-- slide -->` delimiters; each section is a full Markdown slide
 
-- A push to `markmaid-slideshow` automatically starts `.github/workflows/ci.yml`.
-- If that push is a release commit, CI automatically hands off to `.github/workflows/release.yml` after the checks pass.
-- There is no separate manual button that the developer is expected to press as part of the normal branch workflow.
 
-## Requirements
+## Prerequisites
 
-### Local requirements
+### Local development
 
-For day-to-day development on this branch, you need:
-
-- Node.js 20 recommended for parity with CI
+- Node.js 20 (matches CI)
 - npm
 - VS Code
-- permission to push to `markmaid-slideshow`
+- `gh` CLI — required to trigger releases from the terminal
 
-### Repository requirements for release automation
+### Repository secrets (for release automation)
 
-For automated publishing to succeed, the repository needs:
+- `VSCE_PAT` — a Personal Access Token for the VS Code Marketplace publisher account, stored as a GitHub Actions secret under **Settings → Secrets and variables → Actions**
+- Standard `GITHUB_TOKEN` — provided automatically by GitHub Actions; no manual setup needed
 
-- GitHub Actions secret `VSCE_PAT`
-- standard GitHub Actions token access for creating the GitHub Release
 
-## Local setup
+## Local Setup
 
 ```bash
 git clone https://github.com/kanad13/mermaid-slideshow-extension.git
@@ -52,121 +52,207 @@ git checkout markmaid-slideshow
 npm ci
 ```
 
-Recommended local checks before you push:
+
+## Daily Development
+
+### Run the extension locally
+
+1. Open the repository in VS Code.
+2. Press `F5` to launch the Extension Development Host.
+3. In the host window, open `examples/test.md`.
+4. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run `Markdown: Show Markdown Slideshow`.
+5. Verify slide rendering and navigation.
+
+### Local quality checks (run before pushing)
 
 ```bash
-npm run lint
-node --test 'test/**/*.test.js'
-npm run package
+npm run lint                          # ESLint
+node --test 'test/**/*.test.js'       # Unit tests
+npm run package                       # Packages to .vsix; verifies the build
 ```
 
-## What the developer actually does
+The `.vsix` file produced by `npm run package` is git-ignored. Do not commit it.
 
-### Normal code change
+### Committing
 
-1. Edit the branch code, usually in `src/extension.js` or `src/webview.html`.
-2. Press `F5` in VS Code to launch the Extension Development Host.
-3. Open `examples/test.md`.
-4. Run `Markdown: Show Markdown Slideshow` from the Command Palette.
-5. Verify behavior, then run the local checks shown above.
-6. Commit and push normally.
+No special commit message format is required. Use descriptive messages that explain the change.
 
-Example normal commit:
+Stage files explicitly — avoid `git add .` after running `npm run package`, as build artifacts may be present in the working directory even though they are git-ignored.
 
 ```bash
-git add .
-git commit -m "feat: improve slide rendering"
+git add src/extension.js src/webview.html   # or whichever files you changed
+git commit -m "feat: improve slide rendering for nested lists"
 git push origin markmaid-slideshow
 ```
 
-What happens after that push:
 
-1. GitHub Actions runs `.github/workflows/ci.yml`.
-2. The workflow installs dependencies with `npm ci`.
-3. It runs ESLint.
-4. It runs the Node.js unit tests.
-5. It packages the extension with `vsce package`.
-6. It verifies that a `.vsix` file was produced.
-7. No tag is created, and nothing is published.
+## Automation Overview
 
-### Release change
+There are two GitHub Actions workflow files. They are **fully independent** — CI never triggers release, and release never runs automatically.
 
-Release commits are deliberate and use the same push-based flow.
+| Workflow | File | Trigger | What it does |
+| --- | --- | --- | --- |
+| Branch CI | `.github/workflows/ci.yml` | Every push to `markmaid-slideshow` | Lint, unit tests, package, verify `.vsix` |
+| Release Publish | `.github/workflows/release.yml` | Manual `workflow_dispatch` only | Validate version + CHANGELOG, package, create git tag, create GitHub Release, publish to Marketplace |
 
-#### Step 1: Decide the release version
+A push **always** runs CI. A release **never** runs automatically — it requires an explicit manual trigger.
+
+
+## What Happens on Every Push
+
+When you push to `markmaid-slideshow`, `.github/workflows/ci.yml` runs automatically:
+
+1. Checks out the code
+2. Installs dependencies with `npm ci`
+3. Runs ESLint (`npm run lint`)
+4. Runs unit tests (`node --test 'test/**/*.test.js'`)
+5. Packages the extension (`npm run package`)
+6. Verifies the `.vsix` file was produced
+
+If any step fails, the push is flagged in GitHub. Nothing is published. No tag is created.
+
+
+## Release Process
+
+Releases are intentional and manual. There is no special commit message format. Prepare the code, then explicitly trigger the release workflow when ready.
+
+### Step 1 — Decide the version
 
 Use semantic versioning: `MAJOR.MINOR.PATCH`.
 
-#### Step 2: Bump the version files
+- `patch` — bug fixes, no new features
+- `minor` — backwards-compatible new features
+- `major` — breaking changes
+
+### Step 2 — Bump `package.json`
 
 ```bash
 npm version patch --no-git-tag-version
 ```
 
-Use `minor` or `major` instead of `patch` when appropriate. The `--no-git-tag-version` flag is important because Git tags are created by automation, not by your local shell.
+Replace `patch` with `minor` or `major` as appropriate. The `--no-git-tag-version` flag prevents a local git tag — tags are created by automation, not by your shell.
 
-#### Step 3: Update the changelog
+This command updates both `package.json` and `package-lock.json`.
 
-Add the release notes to `CHANGELOG.md` for the same version.
+### Step 3 — Update `CHANGELOG.md`
 
-#### Step 4: Create the release commit
+Add a release section at the top of the changelog. The section header must use this exact format:
 
-The release commit message must be a dedicated one-line commit in this exact format:
-
-```text
-chore: release vX.Y.Z
+```
+## [X.Y.Z] - YYYY-MM-DD
 ```
 
-The version in the message must exactly match `package.json`.
+The version in brackets must exactly match `package.json`. The release workflow validates this.
 
 Example:
 
+```markdown
+## [0.2.0] - 2026-04-15
+
+### Added
+- Slide mode: split content at `<!-- slide -->` delimiters
+- Full Markdown rendering per slide: headings, lists, blockquotes, inline code, bold, italic
+```
+
+### Step 4 — Commit and push
+
 ```bash
 git add package.json package-lock.json CHANGELOG.md
-git commit -m "chore: release v0.2.0"
+git commit -m "chore: bump version to X.Y.Z"
 git push origin markmaid-slideshow
 ```
 
-What happens after that push:
+Any commit message is fine. Wait for CI to pass before proceeding.
 
-1. Branch CI runs first and must pass.
-2. CI then calls the reusable release workflow.
-3. The release workflow validates the commit message format.
-4. It validates that the commit version matches `package.json`.
-5. It verifies that the tag does not already exist.
-6. It packages the extension again for the release artifact.
-7. It creates and pushes the `vX.Y.Z` git tag.
-8. It creates a GitHub Release with the generated `.vsix` attached.
-9. It publishes the extension to the VS Code Marketplace.
+### Step 5 — Trigger the release workflow
+
+Once CI is green, run the release workflow. Pass the version number **without** the `v` prefix.
+
+**Using the `gh` CLI (recommended):**
+
+```bash
+gh workflow run release.yml --ref markmaid-slideshow -f version=X.Y.Z
+```
+
+**Using the GitHub web UI:**
+
+1. Go to **Actions** → **Release Publish**.
+2. Click **Run workflow**.
+3. Select the `markmaid-slideshow` branch.
+4. Enter the version (e.g. `0.2.0`) in the `version` field.
+5. Click **Run workflow**.
+
+### What the release workflow does
+
+1. Validates the workflow was triggered from `markmaid-slideshow`
+2. Validates the `version` input matches semver format `X.Y.Z`
+3. Validates that `package.json` version matches the input version
+4. Validates that `CHANGELOG.md` contains a `## [X.Y.Z]` entry for the version
+5. Verifies the git tag `vX.Y.Z` does not already exist on the remote
+6. Installs dependencies with `npm ci`
+7. Packages the extension with `npm run package`
+8. Verifies the `.vsix` was produced
+9. Creates and pushes the `vX.Y.Z` git tag
+10. Creates a GitHub Release with the `.vsix` attached and auto-generated release notes
+11. Publishes the extension to the VS Code Marketplace
+
 
 ## Troubleshooting
 
-### Release stage did not run
+### CI failed
 
-The release stage only runs when the pushed head commit is a release commit. In practice, use the exact first-line commit message:
+Read the failing step in the GitHub Actions log. Common causes:
 
-```text
-chore: release vX.Y.Z
+- **Lint failure** — run `npm run lint` locally and fix ESLint errors before pushing
+- **Test failure** — run `node --test 'test/**/*.test.js'` locally to reproduce
+- **Package failure** — run `npm run package` locally; check `package.json` for syntax errors or missing fields
+
+### Release workflow failed: wrong branch
+
+The release workflow only accepts `markmaid-slideshow`. If you triggered from the wrong branch:
+
+```bash
+gh workflow run release.yml --ref markmaid-slideshow -f version=X.Y.Z
 ```
 
-If you use a normal commit message, only CI runs.
+### Release workflow failed: invalid version format
 
-### Release stage failed with a version mismatch
+The `version` input must be exactly `X.Y.Z` — three dot-separated integers, no `v` prefix.
 
-The version in the release commit message must exactly match `package.json`. Fix the version, recommit with the correct release message, and push again.
+- Correct: `0.2.0`
+- Wrong: `v0.2.0`, `0.2`, `0.2.0-beta`
 
-### Release stage failed because the tag already exists
+### Release workflow failed: version mismatch
 
-That version has already been tagged remotely. Use a new version number, or delete the remote tag intentionally before retrying.
+The `version` input does not match the version in `package.json`. Run `npm version patch --no-git-tag-version` to bump (or edit `package.json` directly), commit, push, wait for CI, then re-run the workflow.
 
-### Marketplace publish failed
+### Release workflow failed: missing CHANGELOG entry
 
-The most common cause is a missing or expired `VSCE_PAT`. Update the GitHub Actions secret and rerun with a fresh release commit if needed.
+`CHANGELOG.md` does not contain a `## [X.Y.Z]` header for the version. Add the entry, commit, push, wait for CI, then re-run the workflow.
 
-## Branch rules
+### Release workflow failed: tag already exists
 
-- Push your work to `markmaid-slideshow`.
-- Use a normal commit message for normal code changes.
-- Use the exact `chore: release vX.Y.Z` message only for a real release commit.
-- Let automation create the tag, GitHub Release, and Marketplace publish.
-- Keep live workflow/process documentation in this file rather than in `planned-changes/readme.md`.
+That version has already been released. Use a new version number. If the previous release was erroneous and you need to retag, delete the remote tag intentionally:
+
+```bash
+git push origin --delete vX.Y.Z
+```
+
+Then re-run the workflow.
+
+### Release workflow failed: Marketplace publish failed
+
+The most common cause is a missing or expired `VSCE_PAT`. Update the secret under **Settings → Secrets and variables → Actions**, then re-run the workflow from the **Actions** tab — no new commit is needed.
+
+### CI passed but nothing was published
+
+Expected. CI never publishes. After CI passes, run the release workflow manually as described in Step 5 of the release process.
+
+
+## Branch Conventions
+
+- All work happens on `markmaid-slideshow`. Do not merge into `main`.
+- Use descriptive commit messages. No special format is required for any type of commit.
+- Stage files explicitly rather than using `git add .`.
+- Let automation handle git tags, GitHub Releases, and Marketplace publishing — never create tags or publish manually.
+- Keep this file (`docs/development.md`) as the live source of truth for the development and release process. Do not duplicate operational information into `planned-changes/readme.md`.
