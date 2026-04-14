@@ -1,113 +1,77 @@
-# Markdown Slideshow
+# Markdown Presentation & Slideshow for VS Code
 
-A VS Code extension that turns your markdown files into a navigable slideshow — right in the editor.
+**Transform your Markdown files into interactive slide decks instantly. Present your documents directly from VS Code—just like PowerPoint, but powered by Markdown.**
 
-Write your notes, documentation, or presentation in plain markdown. Wrap sections in `<!-- slide -->` delimiters, open the preview, and each section becomes a slide you can click or keyboard through. Mermaid diagrams render inline. Live updates as you type.
+[Markdown Presentation Tool](https://marketplace.visualstudio.com/items?itemName=KunalPathak.markdown-slideshow) is a lightweight extension for developers and writers who need to present documentation, meeting notes, or architecture diagrams without the friction of external software.
+
+Stop wasting time exporting to PDF or building clunky PPT files. Write your content in plain text and launch a beautiful, navigable slideshow with a single click.
+
+## Key Features
+
+- **The "PowerPoint" Experience for Markdown:** Ditch heavy presentation software. Present your `.md` files directly within the VS Code interface.
+- **Familiar Preview Workflow:** If you know how to use the VS Code Markdown preview, you already know how to use this. One click turns your notes into slides.
+- **Native Mermaid Diagrams:** Full support for Mermaid.js (flowcharts, sequence diagrams, gantt charts) rendered perfectly within your slides.
+- **Integrated Presentation Notes:** Keep your private talking points and public slides in a single file. Only content within slide tags is shown during the presentation.
+- **Real-Time Live Sync:** Changes you make in the editor reflect instantly in the slideshow view.
+- **Theme Awareness:** Automatically syncs with your VS Code color theme (Light/Dark) for a seamless visual experience.
+- **Zero-Config Mode:** If your file contains Mermaid blocks but no slide tags, the extension automatically generates a slide for every diagram.
 
 ## Getting Started
 
-1. Install **Markdown Slideshow** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=KunalPathak.markdown-slideshow).
-2. Open any `.md` file.
-3. Run **Markdown: Show Markdown Slideshow** from the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`), or click the slideshow icon in the editor title bar.
-4. The slideshow opens in a side panel and updates live as you edit.
+1. **Install** the extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=KunalPathak.markdown-slideshow).
+2. **Open** any Markdown (`.md`) file.
+3. **Launch the Presentation:**
+   - Click the **Presentation Icon** ![Presentation Icon](./assets/button.svg) in the editor title bar (top right).
+   - **OR** use the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and type `Markdown: Show Markdown Slideshow`.
 
-## Creating Slides
+## How to Create Slides
 
-Add `<!-- slide -->` HTML comments to mark the start and end of each slide, just like code fences:
+Defining a slide is as easy as using a code fence. Simply wrap the content you want to present in `<!-- slide -->` comments.
 
 ````markdown
-# My Document
+# My Project Notes
 
-These are my working notes. This text is not part of the slideshow.
-
-<!-- slide -->
-
-## Introduction
-
-This is the first slide. It supports **bold**, *italic*, `inline code`,
-lists, blockquotes, headings, horizontal rules, and code blocks.
+This text is a private note. It stays in your editor but won't show on the slide.
 
 <!-- slide -->
-
-Some more notes here that won't appear in the slideshow.
-
+## Slide 1: Introduction
+Text placed between two tags becomes a single slide.
 <!-- slide -->
 
-## Architecture
-
-A diagram with surrounding text — all on one slide:
-
-```mermaid
-graph TD
-    A[Client] --> B[API Gateway]
-    B --> C[Service]
-```
+More private notes here...
 
 <!-- slide -->
-
-<!-- slide -->
-
-## Key Points
-
-- Bullet lists render correctly
-- So does **bold**, *italic*, and `inline code`
-
-> This is a blockquote on a slide.
-
+## Slide 2: Architecture
+Everything here is on the second slide!
 <!-- slide -->
 ````
 
-**How it works:**
+## Pro-Tip: Interleaved Presentation Notes
 
-- The 1st `<!-- slide -->` opens a slide, the 2nd closes it, the 3rd opens the next, and so on — just like opening and closing code fences.
-- Content outside any open/close pair (preamble, notes between slides, trailing text) is ignored. This lets you keep detailed notes in the same file without them appearing in the presentation.
-- If a slide is left unclosed (odd number of delimiters), it is implicitly closed at the end of the file.
-- Empty slides (open immediately followed by close) are skipped.
-- The delimiter is case-insensitive (`<!-- SLIDE -->` also works).
-- Delimiters inside fenced code blocks are ignored.
-- YAML front matter at the top of the file is automatically stripped.
+You no longer need a separate "Presenter View" window.
 
-## Mermaid Diagrams
+Write your detailed background info, reminders, or script directly in the Markdown file outside of the `<!-- slide -->` tags.
 
-Mermaid diagrams render on any slide. Both standard and Azure DevOps syntaxes are supported:
+You can read your notes in the editor while your audience sees the clean, rendered slides in the preview panel.
 
-````markdown
-```mermaid
-graph TD
-    A --> B
-```
+## Navigation & Controls
 
-::: mermaid
-graph TD
-    A --> B
-:::
-````
+| Action              | Input                                                            |
+| :------------------ | :--------------------------------------------------------------- |
+| **Next Slide**      | `Right Arrow`, `Down Arrow`, `PageDown`, `Space`, or Scroll Down |
+| **Previous Slide**  | `Left Arrow`, `Up Arrow`, `PageUp`, or Scroll Up                 |
+| **Internal Scroll** | `Shift` + `Scroll` (for slides taller than the screen)           |
+| **Click Nav**       | Use the interactive arrow overlays on the edges                  |
 
-**Files without `<!-- slide -->` delimiters:** If your file has Mermaid code blocks but no slide delimiters, each Mermaid diagram is automatically shown as its own slide. This is a convenient shortcut for diagram-heavy files that don't need surrounding text in the presentation.
+## Configuration
 
-The Mermaid theme auto-detects from your VS Code color theme (dark themes get the Mermaid dark theme, light themes get the default). You can override this in settings.
+Tailor the visual output in your VS Code Settings:
 
-## Navigation
+- `markdownSlideshow.theme`: Choose your Mermaid theme (`default`, `dark`, `forest`, or `neutral`). By default, it auto-detects based on your VS Code theme.
 
-| Action | Controls |
-|---|---|
-| Next slide | Right arrow, Down arrow, PageDown, Space, scroll down |
-| Previous slide | Left arrow, Up arrow, PageUp, scroll up |
-| Scroll within a tall slide | **Shift** + scroll |
-| Click navigation | Arrow buttons on the left and right edges |
+## Contributing & Support
 
-When a slide is taller than the viewport, hold **Shift** while scrolling to move within the current slide without changing slides.
+- We welcome contributions! Check out our [Development Guide](docs/development.md) to get started with local setup and testing.
+- And check [Architecture Guide](docs/architecture.md) to understand the code structure and design decisions.
 
-## Settings
-
-| Setting | Description | Default |
-|---|---|---|
-| `markdownSlideshow.theme` | Mermaid color theme: `default`, `dark`, `forest`, `neutral` | `default` (auto-detects from VS Code theme) |
-
-## Contributing
-
-See [docs/development.md](docs/development.md) for local setup, testing, CI, and release instructions.
-
-## License
-
-[MIT](LICENSE)
+**License:** [MIT](LICENSE)
