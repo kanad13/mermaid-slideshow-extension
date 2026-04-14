@@ -14,7 +14,6 @@
 			color: var(--vscode-editor-foreground);
 			height: 100vh;
 			overflow: hidden;
-			user-select: none;
 		}
 
 		.slide-container {
@@ -30,21 +29,78 @@
 			width: 100%;
 			max-height: calc(100vh - 120px);
 			display: flex;
-			align-items: center;
+			align-items: flex-start;
 			justify-content: center;
 			overflow: auto;
 		}
 
-		.slide-content .mermaid {
+		.slide-inner {
+			width: 100%;
+			max-width: 960px;
+			padding: 24px 32px;
+			background: var(--vscode-editor-background);
+			border-radius: 8px;
+			box-shadow: 0 0 0 1px var(--vscode-widget-border, rgba(128,128,128,0.35));
+			overflow: visible;
+		}
+
+		.slide-inner h1,
+		.slide-inner h2,
+		.slide-inner h3,
+		.slide-inner h4,
+		.slide-inner h5,
+		.slide-inner h6 {
+			margin: 0 0 0.4em 0;
+		}
+
+		.slide-inner p {
+			margin: 0 0 0.6em 0;
+		}
+
+		.slide-inner ul,
+		.slide-inner ol {
+			margin-left: 1.3em;
+			margin-bottom: 0.7em;
+		}
+
+		.slide-inner pre {
+			margin: 0.6em 0;
+			background-color: var(--vscode-textCodeBlock-background);
+			border-radius: 4px;
+			padding: 10px 12px;
+			overflow-x: auto;
+		}
+
+		.slide-inner code {
+			background-color: var(--vscode-textCodeBlock-background);
+			padding: 2px 4px;
+			border-radius: 3px;
+			font-family: 'Courier New', Courier, monospace;
+			font-size: 0.9em;
+		}
+
+		.slide-inner pre code {
+			background: transparent;
+			padding: 0;
+		}
+
+		.slide-inner hr {
+			border: none;
+			border-top: 1px solid var(--vscode-widget-border, rgba(128,128,128,0.35));
+			margin: 0.8em 0;
+		}
+
+		.slide-inner .mermaid {
 			background: transparent;
 			border: none;
 			text-align: center;
 			width: 100%;
+			margin: 0.6em 0;
 		}
 
-		.slide-content .mermaid svg {
+		.slide-inner .mermaid svg {
 			max-width: 100%;
-			max-height: calc(100vh - 140px);
+			max-height: calc(100vh - 180px);
 			height: auto;
 		}
 
@@ -108,7 +164,7 @@
 	<button class="nav-arrow next" aria-label="Next slide">&#8250;</button>
 	<div class="slide-container">
 		<div class="slide-content">
-			<pre class="mermaid"></pre>
+			<div class="slide-inner"></div>
 		</div>
 	</div>
 	<div class="slide-counter"></div>
@@ -116,7 +172,7 @@
 	<script type="module" nonce="{{NONCE}}">
 		import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 
-		const diagrams = {{DIAGRAMS_JSON}};
+		const slides = {{SLIDES_JSON}};
 		let currentIndex = 0;
 
 		mermaid.initialize({
@@ -125,29 +181,182 @@
 			securityLevel: 'loose'
 		});
 
-		const container = document.querySelector('.slide-content');
+		const container = document.querySelector('.slide-inner');
 		const counter = document.querySelector('.slide-counter');
 		const prevBtn = document.querySelector('.nav-arrow.prev');
 		const nextBtn = document.querySelector('.nav-arrow.next');
+		const scrollContainer = document.querySelector('.slide-content');
+
+		function escapeHtml(str) {
+			return str
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;');
+		}
+
+		function renderInline(text) {
+			let out = escapeHtml(text);
+			// Inline code
+			out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
+			// Bold (** or __)
+			out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+			out = out.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+			// Italic (* or _)
+			out = out.replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>');
+			out = out.replace(/(^|[^_])_([^_]+)_/g, '$1<em>$2</em>');
+			return out;
+		}
+
+		function renderMarkdownToHtml(markdown) {
+			const lines = markdown.split(/\r?\n/);
+			let html = '';
+			let inMermaid = false;
+			let inCode = false;
+			let inMermaidColon = false;
+			let inList = false;
+			let listType = '';
+
+			function closeList() {
+				if (inList) {
+					html += listType === 'ol' ? '</ol>' : '</ul>';
+					inList = false;
+					listType = '';
+				}
+			}
+
+			for (let i = 0; i < lines.length; i++) {
+				const line = lines[i];
+
+				// ── Mermaid backtick fences — NOT HTML-escaped (Mermaid reads raw textContent)
+				if (!inCode && !inMermaid && /^```mermaid\s*$/.test(line)) {
+					closeList();
+					inMermaid = true;
+					html += '<pre class="mermaid">';
+					continue;
+				}
+				if (inMermaid && /^```\s*$/.test(line)) {
+					inMermaid = false;
+					html += '</pre>';
+					continue;
+				}
+				if (inMermaid) {
+					html += line + '\n';   // raw — no escapeHtml here
+					continue;
+				}
+
+				// ── Generic fenced code — IS HTML-escaped (display as text)
+				if (!inCode && /^```/.test(line)) {
+					closeList();
+					inCode = true;
+					html += '<pre><code>';
+					continue;
+				}
+				if (inCode && /^```\s*$/.test(line)) {
+					inCode = false;
+					html += '</code></pre>';
+					continue;
+				}
+				if (inCode) {
+					html += escapeHtml(line) + '\n';
+					continue;
+				}
+
+				// ── Azure DevOps ::: mermaid — NOT HTML-escaped
+				if (!inMermaidColon && /^:::\s*mermaid/.test(line)) {
+					closeList();
+					inMermaidColon = true;
+					html += '<pre class="mermaid">';
+					continue;
+				}
+				if (inMermaidColon && /^:::\s*$/.test(line)) {
+					inMermaidColon = false;
+					html += '</pre>';
+					continue;
+				}
+				if (inMermaidColon) {
+					html += line + '\n';   // raw — no escapeHtml here
+					continue;
+				}
+
+				// ── Lists
+				const bulletMatch = line.match(/^\s*[-+*]\s+(.+)/);
+				const orderedMatch = line.match(/^\s*(\d+)\.\s+(.+)/);
+				if (bulletMatch) {
+					if (!inList || listType !== 'ul') { closeList(); html += '<ul>'; inList = true; listType = 'ul'; }
+					html += '<li>' + renderInline(bulletMatch[1]) + '</li>';
+					continue;
+				}
+				if (orderedMatch) {
+					if (!inList || listType !== 'ol') { closeList(); html += '<ol>'; inList = true; listType = 'ol'; }
+					html += '<li>' + renderInline(orderedMatch[2]) + '</li>';
+					continue;
+				}
+				closeList();
+
+				// ── Blockquotes
+				const quoteMatch = line.match(/^\s*>\s?(.*)/);
+				if (quoteMatch) {
+					html += '<blockquote>' + renderInline(quoteMatch[1]) + '</blockquote>';
+					continue;
+				}
+
+				// ── Horizontal rules (---, ***, ___)
+				if (/^\s*[-*_]{3,}\s*$/.test(line)) {
+					html += '<hr />';
+					continue;
+				}
+
+				// ── Headings
+				const hMatch = line.match(/^(#{1,6})\s+(.*)/);
+				if (hMatch) {
+					html += '<h' + hMatch[1].length + '>' + renderInline(hMatch[2]) + '</h' + hMatch[1].length + '>';
+					continue;
+				}
+
+				// ── Blank line or paragraph
+				if (line.trim().length === 0) {
+					html += '<br />';
+				} else {
+					html += '<p>' + renderInline(line) + '</p>';
+				}
+			}
+
+			closeList();
+			return html;
+		}
+
+		let mermaidIdCounter = 0;
 
 		async function renderSlide(index) {
 			currentIndex = index;
-			container.innerHTML = '<pre class="mermaid">' + diagrams[currentIndex] + '</pre>';
+			const markdown = slides[currentIndex];
+			container.innerHTML = renderMarkdownToHtml(markdown);
+			scrollContainer.scrollTop = 0;
 
-			try {
-				await mermaid.run({ querySelector: '.mermaid' });
-			} catch (error) {
-				console.error('Mermaid rendering failed:', error);
-				container.innerHTML = '<p style="color: var(--vscode-errorForeground);">Failed to render diagram ' + (currentIndex + 1) + '</p>';
+			// Assign unique IDs so Mermaid v11 tracks each element independently
+			// across slide navigations (avoids stale internal-ID collisions).
+			const mermaidNodes = container.querySelectorAll('.mermaid');
+			for (const node of mermaidNodes) {
+				node.id = 'mermaid-' + (mermaidIdCounter++);
+				node.removeAttribute('data-processed');
 			}
 
-			counter.textContent = (currentIndex + 1) + ' / ' + diagrams.length;
+			if (mermaidNodes.length > 0) {
+				try {
+					await mermaid.run({ nodes: mermaidNodes });
+				} catch (error) {
+					console.error('Mermaid rendering failed:', error);
+					container.innerHTML = '<p style="color: var(--vscode-errorForeground);">Failed to render slide ' + (currentIndex + 1) + ' — check the Mermaid syntax.</p>';
+				}
+			}
+
+			counter.textContent = (currentIndex + 1) + ' / ' + slides.length;
 			prevBtn.disabled = currentIndex === 0;
-			nextBtn.disabled = currentIndex === diagrams.length - 1;
+			nextBtn.disabled = currentIndex === slides.length - 1;
 		}
 
 		function goNext() {
-			if (currentIndex < diagrams.length - 1) {
+			if (currentIndex < slides.length - 1) {
 				renderSlide(currentIndex + 1);
 			}
 		}
@@ -159,10 +368,10 @@
 		}
 
 		document.addEventListener('keydown', (e) => {
-			if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+			if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
 				e.preventDefault();
 				goNext();
-			} else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+			} else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
 				e.preventDefault();
 				goPrev();
 			}
@@ -170,13 +379,47 @@
 
 		let scrollCooldown = false;
 		document.addEventListener('wheel', (e) => {
-			if (scrollCooldown) return;
-			scrollCooldown = true;
-			setTimeout(() => { scrollCooldown = false; }, 300);
+			// Shift + wheel: scroll within the current slide only.
+			if (e.shiftKey) {
+				if (!scrollContainer) {
+					return;
+				}
+				// On many platforms Shift + wheel produces horizontal delta (deltaX)
+				// instead of vertical (deltaY). Use whichever axis has the larger magnitude.
+				const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+				if (!delta) {
+					return;
+				}
+				const before = scrollContainer.scrollTop;
+				scrollContainer.scrollTop += delta;
+				const after = scrollContainer.scrollTop;
+				if (after !== before) {
+					e.preventDefault();
+					e.stopPropagation();
+				}
+				return;
+			}
 
-			if (e.deltaY > 0) {
+			// Plain wheel: change slides.
+			const canGoNext = e.deltaY > 0 && currentIndex < slides.length - 1;
+			const canGoPrev = e.deltaY < 0 && currentIndex > 0;
+			if (!canGoNext && !canGoPrev) {
+				return;
+			}
+
+			if (scrollCooldown) {
+				return;
+			}
+			scrollCooldown = true;
+			setTimeout(() => {
+				scrollCooldown = false;
+			}, 300);
+
+			if (canGoNext) {
+				e.preventDefault();
 				goNext();
-			} else if (e.deltaY < 0) {
+			} else if (canGoPrev) {
+				e.preventDefault();
 				goPrev();
 			}
 		});
@@ -187,23 +430,30 @@
 		window.addEventListener('message', (event) => {
 			const message = event.data;
 			if (message.type === 'update') {
-				diagrams.length = 0;
-				diagrams.push(...message.diagrams);
+				slides.length = 0;
+				slides.push(...message.slides);
 
-				if (diagrams.length === 0) {
-					container.innerHTML = '<p style="color: var(--vscode-descriptionForeground);">No Mermaid diagrams found.</p>';
+				if (slides.length === 0) {
+					container.innerHTML = '<p style="color: var(--vscode-descriptionForeground);">No slides found.</p>';
 					counter.textContent = '';
 					document.body.classList.add('single-slide');
 					return;
 				}
 
-				document.body.classList.toggle('single-slide', diagrams.length === 1);
-				const newIndex = Math.min(currentIndex, diagrams.length - 1);
+				document.body.classList.toggle('single-slide', slides.length === 1);
+				const newIndex = Math.min(currentIndex, slides.length - 1);
 				renderSlide(newIndex);
 			}
 		});
 
-		renderSlide(0);
+		if (slides.length === 0) {
+			container.innerHTML = '<p style="color: var(--vscode-descriptionForeground);">No slides found.</p>';
+			counter.textContent = '';
+			document.body.classList.add('single-slide');
+		} else {
+			document.body.classList.toggle('single-slide', slides.length === 1);
+			renderSlide(0);
+		}
 	</script>
 </body>
 </html>

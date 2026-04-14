@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Slide mode: add `<!-- slide -->` HTML comments to divide a file into mixed-content slides (markdown text and diagrams on the same slide)
+- Keyboard navigation: PageDown, PageUp, and Space bar added alongside existing arrow keys
+- Tall slide scrolling: hold `Shift` while using the mouse wheel / trackpad to scroll within the current slide without changing slides
+- Markdown rendering: headings, paragraphs, lists, blockquotes, horizontal rules, inline code/bold/italic rendered in slide mode
+- YAML front matter is automatically skipped and not shown as slide content
+
+### Changed
+- Text selection now enabled in the preview panel
+
+### Fixed
+- Classic mermaid-only mode is fully preserved; files without `<!-- slide -->` behave identically to v1.1.4
+
+### Security
+- Slide content JSON uses unicode escaping for `<` characters to prevent injection
+
 ## [1.2.1] - 2026-04-02
 
 ### Fixed

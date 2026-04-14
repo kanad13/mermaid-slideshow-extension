@@ -21,7 +21,8 @@ The two extensions are independent. Work on this branch never touches `main` and
 | `src/extension.js` | All extension logic: activation, slide extraction, webview panel management |
 | `src/webview.html` | Webview renderer: Markdown-to-HTML, Mermaid via CDN, slide navigation |
 | `test/` | Node.js unit tests |
-| `examples/test.md` | Manual test file for the Extension Development Host |
+| `examples/test.md` | Classic mode test file (Mermaid diagrams only, no slide delimiters) |
+| `examples/slide-mode-demo.md` | Slide mode test file (mixed markdown + Mermaid, `<!-- slide -->` delimiters) |
 
 The extension supports two slide modes, auto-detected per file:
 - **Classic mode** (no `<!-- slide -->` in the file): each Mermaid code block is one slide
@@ -55,23 +56,39 @@ npm ci
 
 ## Daily Development
 
-### Run the extension locally
+### Run the extension locally (F5 debug)
 
 1. Open the repository in VS Code.
 2. Press `F5` to launch the Extension Development Host.
-3. In the host window, open `examples/test.md`.
+3. In the host window, open `examples/test.md` (classic mode) or `examples/slide-mode-demo.md` (slide mode).
 4. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run `Markdown: Show Markdown Slideshow`.
 5. Verify slide rendering and navigation.
+
+### Test with a local VSIX install
+
+If `F5` debugging doesn't work (e.g. in a Codespace or remote container), build and install a `.vsix` package instead:
+
+```bash
+npm run package                       # produces markdown-slideshow-X.Y.Z.vsix
+code --install-extension markdown-slideshow-*.vsix
+```
+
+Then reload VS Code (`Developer: Reload Window`) and open a markdown file to test.
+
+To uninstall afterward:
+
+```bash
+code --uninstall-extension KunalPathak.markdown-slideshow
+```
+
+The `.vsix` file is git-ignored. Do not commit it.
 
 ### Local quality checks (run before pushing)
 
 ```bash
-npm run lint                          # ESLint
-node --test 'test/**/*.test.js'       # Unit tests
+npm test                              # Unit tests + ESLint (same as CI)
 npm run package                       # Packages to .vsix; verifies the build
 ```
-
-The `.vsix` file produced by `npm run package` is git-ignored. Do not commit it.
 
 ### Committing
 
@@ -104,10 +121,9 @@ When you push to `markmaid-slideshow`, `.github/workflows/ci.yml` runs automatic
 
 1. Checks out the code
 2. Installs dependencies with `npm ci`
-3. Runs ESLint (`npm run lint`)
-4. Runs unit tests (`node --test 'test/**/*.test.js'`)
-5. Packages the extension (`npm run package`)
-6. Verifies the `.vsix` file was produced
+3. Runs unit tests and ESLint (`npm test`)
+4. Packages the extension (`npm run package`)
+5. Verifies the `.vsix` file was produced
 
 If any step fails, the push is flagged in GitHub. Nothing is published. No tag is created.
 
@@ -204,7 +220,7 @@ gh workflow run release.yml --ref markmaid-slideshow -f version=X.Y.Z
 Read the failing step in the GitHub Actions log. Common causes:
 
 - **Lint failure** — run `npm run lint` locally and fix ESLint errors before pushing
-- **Test failure** — run `node --test 'test/**/*.test.js'` locally to reproduce
+- **Test failure** — run `npm test` locally to reproduce
 - **Package failure** — run `npm run package` locally; check `package.json` for syntax errors or missing fields
 
 ### Release workflow failed: wrong branch

@@ -40,6 +40,122 @@ function extractMermaidBlocks(rawText) {
 }
 
 /**
+ * Detects whether a markdown document contains slide delimiters.
+ *
+ * A slide delimiter is a line containing only <!-- slide --> (case-insensitive,
+ * optional surrounding whitespace). This is the opt-in signal for slide mode;
+ * files without it use the classic mermaid-only path.
+ *
+ * @param {string} rawText - Raw markdown file content
+ * @returns {boolean} True if at least one slide delimiter is present
+ */
+function hasSlideDelimiter(rawText) {
+	return /^<!--\s*slide\s*-->\s*$/im.test(rawText);
+}
+
+/**
+ * Splits a markdown document into logical slides.
+ *
+ * Splits on lines containing only <!-- slide --> (case-insensitive,
+ * optional surrounding whitespace). Delimiters inside fenced code blocks
+ * (``` or ::: mermaid) are ignored. Empty slides are skipped.
+ *
+ * A leading YAML front matter block (line 0 = "---", closed by "---" or "...")
+ * is detected and excluded from slide content.
+ *
+ * @param {string} rawText - Raw markdown file content
+ * @returns {string[]} Array of per-slide markdown strings
+ */
+function splitSlides(rawText) {
+	if (!rawText) {
+		return [];
+	}
+
+	const DELIMITER = /^<!--\s*slide\s*-->\s*$/i;
+	const lines = rawText.split(/\r?\n/);
+	let startLine = 0;
+
+	// Skip YAML front matter if present (file starts with ---)
+	if (/^---\s*$/.test(lines[0])) {
+		for (let j = 1; j < lines.length; j++) {
+			if (/^---\s*$/.test(lines[j]) || /^\.\.\.\s*$/.test(lines[j])) {
+				startLine = j + 1;
+				break;
+			}
+		}
+	}
+
+	const slides = [];
+	let current = [];
+	let insideFence = false;
+	let insideColonMermaid = false;
+
+	for (let i = startLine; i < lines.length; i++) {
+		const line = lines[i];
+
+		// Track triple-backtick code fences (any language)
+		if (/^```/.test(line)) {
+			insideFence = !insideFence;
+			current.push(line);
+			continue;
+		}
+
+		// Track Azure DevOps style mermaid fences ::: mermaid ... :::
+		if (!insideFence && /^:::\s*mermaid/.test(line)) {
+			insideColonMermaid = true;
+			current.push(line);
+			continue;
+		}
+		if (insideColonMermaid && /^:::\s*$/.test(line)) {
+			insideColonMermaid = false;
+			current.push(line);
+			continue;
+		}
+
+		// Slide delimiters are only recognized outside of fenced blocks
+		if (!insideFence && !insideColonMermaid && DELIMITER.test(line)) {
+			const slideText = current.join("\n").trim();
+			if (slideText) {
+				slides.push(slideText);
+			}
+			current = [];
+		} else {
+			current.push(line);
+		}
+	}
+
+	const last = current.join("\n").trim();
+	if (last) {
+		slides.push(last);
+	}
+
+	return slides;
+}
+
+/**
+ * Returns slides for a document, auto-detecting the appropriate mode.
+ *
+ * Slide mode (<!-- slide --> delimiter present): splits by delimiter,
+ * each slide is raw markdown that may contain text and Mermaid blocks.
+ *
+ * Classic mode (no delimiter): extracts only Mermaid diagram blocks,
+ * one per slide, identical to pre-slide-mode behaviour. Each block is
+ * wrapped in a mermaid fence so the webview's unified renderer handles
+ * both modes with the same code path.
+ *
+ * @param {string} rawText - Raw markdown file content
+ * @returns {string[]} Array of slide strings (markdown)
+ */
+function getSlides(rawText) {
+	if (hasSlideDelimiter(rawText)) {
+		return splitSlides(rawText);
+	}
+	return extractMermaidBlocks(rawText).map(function (d) {
+		return "```mermaid\n" + d + "\n```";
+	});
+}
+
+/**
  * Generates a random nonce for Content Security Policy.
  *
  * @returns {string} Random 32-character alphanumeric string
@@ -76,15 +192,18 @@ function resolveTheme() {
  * Generates the slideshow webview HTML from a template file.
  *
  * Reads src/webview.html and replaces placeholder tokens with runtime values.
- * Returns an empty-state page when no diagrams are found.
+ * Returns an empty-state page when no slides are found.
  *
- * @param {string[]} diagrams - Array of Mermaid diagram code strings
+ * Supports both classic mode (one Mermaid diagram per slide) and slide mode
+ * (mixed markdown and Mermaid content per slide, split by <!-- slide --> delimiters).
+ *
+ * @param {string[]} slides - Array of slide strings (raw markdown)
  * @param {string} nonce - CSP nonce token
  * @param {string} theme - Mermaid theme name (default, dark, forest, neutral)
  * @returns {string} Complete HTML page
  */
-function getWebviewContent(diagrams, nonce, theme) {
-	if (diagrams.length === 0) {
+function getWebviewContent(slides, nonce, theme) {
+	if (slides.length === 0) {
 		return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,8 +228,7 @@ function getWebviewContent(diagrams, nonce, theme) {
 </head>
 <body>
 	<div class="empty">
-		<p>No Mermaid diagrams found in this file.</p>
-		<p style="font-size: 0.85em;">Add a \`\`\`mermaid code block to get started.</p>
+		<p>No slides found in this file. Add a mermaid block in classic mode, or add &lt;!-- slide --&gt; HTML comments on their own line to divide the file into mixed markdown and diagram slides.</p>
 	</div>
 </body>
 </html>`;
@@ -121,30 +239,32 @@ function getWebviewContent(diagrams, nonce, theme) {
 
 	html = html.replace(/\{\{NONCE\}\}/g, nonce);
 	html = html.replace("{{THEME}}", theme);
-	html = html.replace("{{DIAGRAMS_JSON}}", JSON.stringify(diagrams));
-	html = html.replace("{{SINGLE_SLIDE_CLASS}}", diagrams.length === 1 ? "single-slide" : "");
+	html = html.replace("{{SLIDES_JSON}}", JSON.stringify(slides).replace(/</g, "\\u003c"));
+	html = html.replace("{{SINGLE_SLIDE_CLASS}}", slides.length === 1 ? "single-slide" : "");
 
 	return html;
 }
 
 /**
- * Sends updated diagrams to the webview via postMessage.
+ * Sends updated slides to the webview via postMessage.
  *
  * @param {vscode.WebviewPanel} panel - The webview panel
- * @param {string[]} diagrams - Updated array of Mermaid diagram strings
+ * @param {string[]} slides - Updated array of slide strings (raw markdown)
  */
-function postDiagramUpdate(panel, diagrams) {
+function postSlidesUpdate(panel, slides) {
 	panel.webview.postMessage({
 		type: "update",
-		diagrams: diagrams
+		slides: slides
 	});
 }
 
 /**
  * Activation function - called when the extension loads.
  *
- * Registers the "Show Mermaid Slideshow Preview" command and manages
- * a single webview panel that displays Mermaid diagrams as a slideshow.
+ * Registers the "Show Markdown Slideshow Preview" command and manages
+ * a single webview panel that displays slides as a navigable slideshow.
+ * Supports two modes: classic (one Mermaid diagram per slide) and slide
+ * mode (mixed markdown and Mermaid content split by <!-- slide --> delimiters).
  *
  * @param {vscode.ExtensionContext} context - Extension context provided by VS Code
  */
@@ -170,14 +290,14 @@ function activate(context) {
 				return;
 			}
 
-			const diagrams = extractMermaidBlocks(doc.getText());
+			const slides = getSlides(doc.getText());
 			const theme = resolveTheme();
 			const nonce = getNonce();
 
 			if (currentPanel) {
 				currentPanel.reveal(vscode.ViewColumn.Beside);
 				currentDocument = doc;
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
 			} else {
 				currentPanel = vscode.window.createWebviewPanel(
 					"markdownSlideshow",
@@ -187,7 +307,7 @@ function activate(context) {
 				);
 
 				currentDocument = doc;
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
 
 				currentPanel.onDidDispose(
 					() => {
@@ -211,8 +331,8 @@ function activate(context) {
 			) {
 				clearTimeout(debounceTimer);
 				debounceTimer = setTimeout(() => {
-					const diagrams = extractMermaidBlocks(e.document.getText());
-					postDiagramUpdate(currentPanel, diagrams);
+					const slides = getSlides(e.document.getText());
+					postSlidesUpdate(currentPanel, slides);
 				}, 300);
 			}
 		}
@@ -228,8 +348,8 @@ function activate(context) {
 			) {
 				const theme = resolveTheme();
 				const nonce = getNonce();
-				const diagrams = extractMermaidBlocks(currentDocument.getText());
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+				const slides = getSlides(currentDocument.getText());
+				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
 			}
 		}
 	);
@@ -240,8 +360,8 @@ function activate(context) {
 			if (currentPanel && currentDocument) {
 				const theme = resolveTheme();
 				const nonce = getNonce();
-				const diagrams = extractMermaidBlocks(currentDocument.getText());
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+				const slides = getSlides(currentDocument.getText());
+				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
 			}
 		}
 	);
@@ -258,4 +378,7 @@ module.exports = {
 	activate,
 	deactivate,
 	extractMermaidBlocks,
+	hasSlideDelimiter,
+	splitSlides,
+	getSlides,
 };

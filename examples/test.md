@@ -1,26 +1,24 @@
-# Mermaid Slideshow
+# Markdown Slideshow — Classic Mode Test
 
-This file contains diverse Mermaid diagram types for testing slideshow rendering and navigation.
+This file contains diverse Mermaid diagram types for testing classic mode rendering and navigation. Because it has no `<!-- slide -->` delimiters, the extension uses classic mode: one Mermaid diagram per slide.
 
 ## About This Extension
 
-- Markdown preview extensions show your whole file.
+- Markdown Slideshow presents Mermaid diagrams and markdown content as a navigable slideshow.
 
-- But what if you want to focus just on the Mermaid diagrams?
+- In **classic mode** (this file): each Mermaid code block becomes one slide.
 
-- Mermaid Slideshow (this extension) presents every diagram from your markdown file.
+- In **slide mode**: add `<!-- slide -->` delimiters to create mixed-content slides with text and diagrams. See `examples/slide-mode-demo.md` for a demo.
 
 - Make a presentation directly from your markdown notes. No extra setup, no exports.
-
-- One diagram at a time. As a slideshow.
 
 - Extremely lightweight and works with all Mermaid syntax.
 
 - Works with all native Mermaid themes.
 
-- Supports VSCode Dark and Light themes.
+- Supports VS Code dark and light themes.
 
-- Use the Zen Mode for distraction-free presenting.
+- Use Zen Mode for distraction-free presenting.
 
 
 ## Diagram 1: Flowchart

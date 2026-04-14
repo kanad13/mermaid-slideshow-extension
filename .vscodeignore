@@ -5,6 +5,7 @@
 .vscode-test/
 .claude/
 .dev/
+.devcontainer/
 .github/
 *.vsix
 *.log

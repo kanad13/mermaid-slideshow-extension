@@ -4,16 +4,11 @@
 
 This is the `markmaid-slideshow` branch. It is building `markdown-slideshow` — a **new, independent VS Code extension** that is distinct from the `mermaid-slideshow` extension on `main`.
 
-**`src/` is in active transition.** The implementation plan in `planned-changes/plan.md` is the source of truth for what needs to be built. Not all planned changes are complete. When `src/` code and the plan conflict, the plan wins.
-
-**Reference files:**
-- `planned-changes/plan.md` — phased implementation plan with quality gates
-- `planned-changes/code-snippets.md` — reference snippets grouped by file
-
-**Deferred docs** (clean-slated placeholders, will be filled in after implementation):
-- `readme.md`
-- `docs/architecture.md`
-- `CHANGELOG.md` (has an `[Unreleased]` section stub ready)
+**Key files:**
+- `src/extension.js` — all extension logic
+- `src/webview.html` — webview renderer with markdown-to-HTML and Mermaid support
+- `test/extension.test.js` — unit tests
+- `docs/development.md` — development, CI, and release workflow
 
 ---
 
