@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(npm test:*)",
+      "Bash(wc -l pr_review_docs/*.md src/extension.js src/webview.html test/extension.test.js)",
+      "Bash(git commit:*)",
+      "Bash(git add:*)"
+    ],
+      "autoMemoryEnabled": false
+  }
+}
