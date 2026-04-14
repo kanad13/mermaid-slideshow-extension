@@ -60,6 +60,11 @@ function hasSlideDelimiter(rawText) {
  * optional surrounding whitespace). Delimiters inside fenced code blocks
  * (``` or ::: mermaid) are ignored. Empty slides are skipped.
  *
+ * Content before the first delimiter is treated as preamble and discarded —
+ * only content between delimiters becomes a slide. This lets authors keep
+ * titles, notes, or metadata above the first <!-- slide --> without it
+ * appearing in the slideshow.
+ *
  * A leading YAML front matter block (line 0 = "---", closed by "---" or "...")
  * is detected and excluded from slide content.
  *
@@ -89,6 +94,7 @@ function splitSlides(rawText) {
 	let current = [];
 	let insideFence = false;
 	let insideColonMermaid = false;
+	let seenFirstDelimiter = false;
 
 	for (let i = startLine; i < lines.length; i++) {
 		const line = lines[i];
@@ -114,19 +120,27 @@ function splitSlides(rawText) {
 
 		// Slide delimiters are only recognized outside of fenced blocks
 		if (!insideFence && !insideColonMermaid && DELIMITER.test(line)) {
-			const slideText = current.join("\n").trim();
-			if (slideText) {
-				slides.push(slideText);
+			// Content before the first delimiter is preamble — discard it.
+			// Only content between delimiters becomes a slide.
+			if (seenFirstDelimiter) {
+				const slideText = current.join("\n").trim();
+				if (slideText) {
+					slides.push(slideText);
+				}
 			}
+			seenFirstDelimiter = true;
 			current = [];
 		} else {
 			current.push(line);
 		}
 	}
 
-	const last = current.join("\n").trim();
-	if (last) {
-		slides.push(last);
+	// Trailing content after the last delimiter is the final slide
+	if (seenFirstDelimiter) {
+		const last = current.join("\n").trim();
+		if (last) {
+			slides.push(last);
+		}
 	}
 
 	return slides;
@@ -228,7 +242,7 @@ function getWebviewContent(slides, nonce, theme) {
 </head>
 <body>
 	<div class="empty">
-		<p>No slides found in this file. Add a mermaid block in classic mode, or add &lt;!-- slide --&gt; HTML comments on their own line to divide the file into mixed markdown and diagram slides.</p>
+		<p>No slides found in this file. Add &lt;!-- slide --&gt; delimiters to create slides, or include Mermaid code blocks for automatic diagram slides.</p>
 	</div>
 </body>
 </html>`;
