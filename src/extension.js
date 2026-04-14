@@ -238,7 +238,7 @@ function getWebviewContent(slides, nonce, theme) {
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">
-	<title>Markdown Slideshow</title>
+	<title>Markdown Presentation</title>
 	<style>
 		body {
 			display: flex;
@@ -289,7 +289,7 @@ function postSlidesUpdate(panel, slides) {
 /**
  * Activation function - called when the extension loads.
  *
- * Registers the "Show Markdown Slideshow Preview" command and manages
+ * Registers the "Show Markdown Presentation Preview" command and manages
  * a single webview panel that displays slides as a navigable slideshow.
  * Supports two modes: classic (one Mermaid diagram per slide) and slide
  * mode (mixed markdown and Mermaid content split by <!-- slide --> delimiters).
@@ -329,7 +329,7 @@ function activate(context) {
 			} else {
 				currentPanel = vscode.window.createWebviewPanel(
 					"markdownSlideshow",
-					"Markdown Slideshow",
+					"Markdown Presentation",
 					vscode.ViewColumn.Beside,
 					{ enableScripts: true }
 				);

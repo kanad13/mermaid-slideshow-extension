@@ -2,20 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.2.0] - 2026-04-14
 
 ### Added
-- Slide mode: add `<!-- slide -->` HTML comments to divide a file into mixed-content slides (markdown text and diagrams on the same slide)
-- Keyboard navigation: PageDown, PageUp, and Space bar added alongside existing arrow keys
-- Tall slide scrolling: hold `Shift` while using the mouse wheel / trackpad to scroll within the current slide without changing slides
-- Markdown rendering: headings, paragraphs, lists, blockquotes, horizontal rules, inline code/bold/italic rendered in slide mode
-- YAML front matter is automatically skipped and not shown as slide content
+- Paired fence slide delimiters: wrap content in `<!-- slide -->` open/close pairs to create slides, just like code fences. Content outside pairs is ignored, letting you keep notes and documentation in the same file.
+- Full markdown rendering per slide: headings, paragraphs, lists (ordered/unordered), blockquotes, horizontal rules, inline code, bold, italic, fenced code blocks, and Mermaid diagrams
+- Keyboard navigation: arrow keys, PageDown, PageUp, and Space bar
+- Tall slide scrolling: hold Shift while scrolling to move within the current slide
+- YAML front matter is automatically stripped
 
 ### Changed
-- Text selection now enabled in the preview panel
+- Rebranded from "Markdown Slideshow" to "Markdown Presentation Tool"
+- Command palette entry renamed to "Show Markdown Presentation"
+- Editor title bar icon changed to `$(feedback)` codicon
+- README rewritten with user-focused language and clear paired-fence examples
+- Architecture and development docs rewritten
 
 ### Fixed
-- Classic mermaid-only mode is fully preserved; files without `<!-- slide -->` behave identically to v1.1.4
+- Content before the first `<!-- slide -->` delimiter no longer appears as a slide
+- Content between closing and opening delimiter pairs is correctly ignored
 
 ### Security
 - Slide content JSON uses unicode escaping for `<` characters to prevent injection

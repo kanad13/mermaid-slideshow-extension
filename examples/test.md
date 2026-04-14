@@ -1,10 +1,10 @@
-# Markdown Slideshow — Classic Mode Test
+# Markdown Presentation Tool — Classic Mode Test
 
 This file contains diverse Mermaid diagram types for testing classic mode rendering and navigation. Because it has no `<!-- slide -->` delimiters, the extension uses classic mode: one Mermaid diagram per slide.
 
 ## About This Extension
 
-- Markdown Slideshow presents Mermaid diagrams and markdown content as a navigable slideshow.
+- Markdown Presentation Tool presents Mermaid diagrams and markdown content as a navigable slideshow.
 
 - In **classic mode** (this file): each Mermaid code block becomes one slide.
 

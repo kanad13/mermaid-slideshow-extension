@@ -1,8 +1,8 @@
 {
 	"name": "markdown-slideshow",
-	"displayName": "Markdown Slideshow",
-	"description": "Preview Mermaid diagrams and markdown slides in a focused, navigable slideshow with keyboard controls and live updates as you edit.",
-	"version": "0.1.0",
+	"displayName": "Markdown Presentation Tool",
+	"description": "Turn any Markdown file into a navigable slide deck inside VS Code. Wrap content in <!-- slide --> tags, present with one click. Supports Mermaid diagrams, code blocks, and full Markdown rendering with live updates.",
+	"version": "0.2.0",
 	"icon": "assets/icon.png",
 	"publisher": "KunalPathak",
 	"author": "Kunal Pathak",
@@ -20,13 +20,14 @@
 	],
 	"keywords": [
 		"markdown",
-		"slideshow",
 		"presentation",
 		"slides",
+		"slideshow",
 		"mermaid",
 		"diagrams",
-		"preview",
-		"mixed content"
+		"powerpoint",
+		"presenter",
+		"preview"
 	],
 	"qna": "marketplace",
 	"galleryBanner": {
@@ -41,9 +42,9 @@
 		"commands": [
 			{
 				"command": "markdownSlideshow.showPreview",
-				"title": "Show Markdown Slideshow",
+				"title": "Show Markdown Presentation",
 				"category": "Markdown",
-				"icon": "$(vm-running)"
+				"icon": "$(feedback)"
 			}
 		],
 		"menus": {
@@ -56,7 +57,7 @@
 			]
 		},
 		"configuration": {
-			"title": "Markdown Slideshow",
+			"title": "Markdown Presentation Tool",
 			"properties": {
 				"markdownSlideshow.theme": {
 					"type": "string",

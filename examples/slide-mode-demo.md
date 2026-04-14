@@ -1,6 +1,6 @@
 # Slide Mode Demo
 
-This file demonstrates **slide mode** in Markdown Slideshow.
+This file demonstrates **slide mode** in Markdown Presentation Tool.
 Because it contains `<!-- slide -->` delimiters, each section between
 delimiters becomes one slide with full markdown rendering.
 

@@ -1,10 +1,10 @@
 # Architecture
 
-Technical architecture of the Markdown Slideshow VS Code extension.
+Technical architecture of the Markdown Presentation Tool VS Code extension.
 
 ## Overview
 
-Markdown Slideshow is a VS Code extension that presents markdown content as a navigable slideshow in a webview panel. Users wrap sections of their markdown file in `<!-- slide -->` delimiter pairs, and each pair's content becomes one slide with full markdown rendering — headings, paragraphs, lists, blockquotes, code blocks, and Mermaid diagrams.
+Markdown Presentation Tool is a VS Code extension that presents markdown content as a navigable slideshow in a webview panel. Users wrap sections of their markdown file in `<!-- slide -->` delimiter pairs, and each pair's content becomes one slide with full markdown rendering — headings, paragraphs, lists, blockquotes, code blocks, and Mermaid diagrams.
 
 ## Branch Strategy and History
 

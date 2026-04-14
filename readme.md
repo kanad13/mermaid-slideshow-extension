@@ -10,6 +10,7 @@ Stop wasting time exporting to PDF or building clunky PPT files. Write your cont
 
 - **The "PowerPoint" Experience for Markdown:** Ditch heavy presentation software. Present your `.md` files directly within the VS Code interface.
 - **Familiar Preview Workflow:** If you know how to use the VS Code Markdown preview, you already know how to use this. One click turns your notes into slides.
+- **Works with Any Markdown File:** No special formatting required. Just add `<!-- slide -->` comments to define your slides, and the extension does the rest.
 - **Native Mermaid Diagrams:** Full support for Mermaid.js (flowcharts, sequence diagrams, gantt charts) rendered perfectly within your slides.
 - **Integrated Presentation Notes:** Keep your private talking points and public slides in a single file. Only content within slide tags is shown during the presentation.
 - **Real-Time Live Sync:** Changes you make in the editor reflect instantly in the slideshow view.
@@ -21,8 +22,8 @@ Stop wasting time exporting to PDF or building clunky PPT files. Write your cont
 1. **Install** the extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=KunalPathak.markdown-slideshow).
 2. **Open** any Markdown (`.md`) file.
 3. **Launch the Presentation:**
-   - Click the **Presentation Icon** ![Presentation Icon](./assets/button.svg) in the editor title bar (top right).
-   - **OR** use the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and type `Markdown: Show Markdown Slideshow`.
+   - Click the **Presentation Icon** in the editor title bar (top right).
+   - **OR** use the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and type `Markdown: Show Markdown Presentation`.
 
 ## How to Create Slides
 

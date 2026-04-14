@@ -1,4 +1,4 @@
-# Markdown Slideshow - VS Code Extension
+# Markdown Presentation Tool - VS Code Extension
 
 ## Branch Status
 

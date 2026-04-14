@@ -47,7 +47,7 @@ npm ci
 1. Open the repository in VS Code.
 2. Press `F5` to launch the Extension Development Host.
 3. In the host window, open `examples/test.md` (classic mode) or `examples/slide-mode-demo.md` (slide mode).
-4. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run `Markdown: Show Markdown Slideshow`.
+4. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run `Markdown: Show Markdown Presentation`.
 5. Verify slide rendering and navigation.
 
 ### Test with a local VSIX install
