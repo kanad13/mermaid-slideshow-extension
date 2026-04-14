@@ -14,13 +14,13 @@ This is the `markmaid-slideshow` branch. It is building `markdown-slideshow` —
 
 ## Key Context
 
-This extension presents markdown content as a navigable slideshow in a VS Code webview. It supports **two modes**, auto-detected per file:
+This extension presents markdown content as a navigable slideshow in a VS Code webview. The entry point is `getSlides()` in `src/extension.js`, which auto-detects the extraction mode:
 
-**Classic mode** (no `<!-- slide -->` in the file): each Mermaid diagram block is one slide, identical to the original mermaid-slideshow behavior. Entry point: `getSlides()` wraps each extracted Mermaid block in a fence and returns it as a slide.
+**Slide mode** (file contains `<!-- slide -->`): Delimiters work as paired fences — the 1st opens a slide, the 2nd closes it, the 3rd opens the next, etc. Only content inside open/close pairs becomes a slide. Content outside pairs (preamble, notes between slides, trailing text) is ignored. If the file ends with a slide still open, EOF acts as implicit close. Empty slides are skipped.
 
-**Slide mode** (file contains `<!-- slide -->`): the file is split at `<!-- slide -->` HTML comment delimiters. Each section between delimiters becomes one slide with full markdown rendering — headings, paragraphs, lists, blockquotes, inline code, bold/italic, and Mermaid diagrams all render correctly on the same slide.
+**Mermaid-only mode** (no `<!-- slide -->` in the file): Backward-compatible path from the original `mermaid-slideshow` extension. Extracts only Mermaid diagram blocks, one per slide. All surrounding markdown text is discarded.
 
-Both modes share the same webview renderer (`renderMarkdownToHtml` in `src/webview.html`). The dispatcher is `getSlides()` in `src/extension.js`.
+Both modes share the same webview renderer (`renderMarkdownToHtml` in `src/webview.html`).
 
 - Single source file: `src/extension.js`
 - No runtime dependencies — Mermaid loaded via CDN in webview
@@ -36,7 +36,7 @@ Both modes share the same webview renderer (`renderMarkdownToHtml` in `src/webvi
 - No TypeScript, no frameworks, no bundled webview scripts
 - Mermaid CDN: `https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs`
 - `getSlides()` is the single entry point for slide extraction — never call `extractMermaidBlocks()` or `splitSlides()` directly from `activate()`
-- Slide delimiter: `<!-- slide -->` (HTML comment on its own line, case-insensitive)
+- Slide delimiter: `<!-- slide -->` (HTML comment on its own line, case-insensitive, paired open/close semantics)
 - Do NOT use `---` as a slide delimiter — it conflicts with Markdown `<hr>` and YAML front matter
 - Two Mermaid syntaxes supported inside slides: backtick (` ```mermaid `) and Azure DevOps (`:::`)
 

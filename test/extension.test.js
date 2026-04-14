@@ -91,23 +91,51 @@ describe("extractMermaidBlocks", () => {
 	});
 });
 
-describe("splitSlides", () => {
+describe("splitSlides (paired fence semantics)", () => {
 
-	it("splits slides on <!-- slide --> delimiter, discarding preamble", () => {
-		const input = "# Preamble\ncontent\n<!-- slide -->\n# Slide 1\nmore\n<!-- slide -->\n# Slide 2";
+	it("extracts content between a single open/close pair", () => {
+		const input = "<!-- slide -->\n# Slide 1\nContent here\n<!-- slide -->";
+		const result = splitSlides(input);
+		assert.equal(result.length, 1);
+		assert.match(result[0], /Slide 1/);
+		assert.match(result[0], /Content here/);
+	});
+
+	it("extracts multiple paired slides", () => {
+		const input = "<!-- slide -->\n# Slide 1\n<!-- slide -->\n<!-- slide -->\n# Slide 2\n<!-- slide -->";
 		const result = splitSlides(input);
 		assert.equal(result.length, 2);
 		assert.match(result[0], /Slide 1/);
 		assert.match(result[1], /Slide 2/);
 	});
 
+	it("discards content outside pairs (preamble, gaps, trailing)", () => {
+		const input = "# Preamble\n<!-- slide -->\n# Slide 1\n<!-- slide -->\nGap text\n<!-- slide -->\n# Slide 2\n<!-- slide -->\nTrailing";
+		const result = splitSlides(input);
+		assert.equal(result.length, 2);
+		assert.match(result[0], /Slide 1/);
+		assert.doesNotMatch(result[0], /Preamble/);
+		assert.match(result[1], /Slide 2/);
+		assert.doesNotMatch(result[1], /Gap text/);
+		assert.doesNotMatch(result[1], /Trailing/);
+	});
+
+	it("implicitly closes a slide at EOF (odd number of delimiters)", () => {
+		const input = "<!-- slide -->\n# Slide 1\n<!-- slide -->\n<!-- slide -->\n# Slide 2";
+		const result = splitSlides(input);
+		assert.equal(result.length, 2);
+		assert.match(result[1], /Slide 2/);
+	});
+
 	it("is case-insensitive on the delimiter", () => {
-		const input = "<!-- SLIDE -->\nSlide A\n<!-- SLIDE -->\nSlide B";
-		assert.equal(splitSlides(input).length, 2);
+		const input = "<!-- SLIDE -->\nSlide A\n<!-- SLIDE -->";
+		const result = splitSlides(input);
+		assert.equal(result.length, 1);
+		assert.match(result[0], /Slide A/);
 	});
 
 	it("ignores delimiter inside fenced code block", () => {
-		const input = "<!-- slide -->\n# Slide 1\n```js\n<!-- slide -->\n```\n<!-- slide -->\n# Slide 2";
+		const input = "<!-- slide -->\n# Slide 1\n```js\n<!-- slide -->\n```\n<!-- slide -->\n<!-- slide -->\n# Slide 2\n<!-- slide -->";
 		const result = splitSlides(input);
 		assert.equal(result.length, 2);
 		assert.match(result[0], /Slide 1/);
@@ -115,17 +143,18 @@ describe("splitSlides", () => {
 	});
 
 	it("ignores delimiter inside ::: mermaid block", () => {
-		const input = "<!-- slide -->\n# Slide 1\n::: mermaid\ngraph TD\n  A-->B\n:::\n<!-- slide -->\n# Slide 2";
+		const input = "<!-- slide -->\n# Slide 1\n::: mermaid\ngraph TD\n  A-->B\n:::\n<!-- slide -->";
 		const result = splitSlides(input);
-		assert.equal(result.length, 2);
+		assert.equal(result.length, 1);
 		assert.match(result[0], /Slide 1/);
-		assert.match(result[1], /Slide 2/);
+		assert.match(result[0], /graph TD/);
 	});
 
-	it("skips empty slides between delimiters", () => {
-		const input = "<!-- slide -->\n# Slide 1\n<!-- slide -->\n\n<!-- slide -->\n# Slide 2";
+	it("skips empty slides (open immediately followed by close)", () => {
+		const input = "<!-- slide -->\n<!-- slide -->\n<!-- slide -->\n# Real slide\n<!-- slide -->";
 		const result = splitSlides(input);
-		assert.equal(result.length, 2);
+		assert.equal(result.length, 1);
+		assert.match(result[0], /Real slide/);
 	});
 
 	it("returns empty array when no delimiter present", () => {
@@ -134,34 +163,23 @@ describe("splitSlides", () => {
 		assert.equal(result.length, 0);
 	});
 
-	it("discards preamble before the first delimiter", () => {
-		const input = "# Preamble text\nThis is not a slide.\n<!-- slide -->\n# Actual Slide";
-		const result = splitSlides(input);
-		assert.equal(result.length, 1);
-		assert.match(result[0], /Actual Slide/);
-		assert.doesNotMatch(result[0], /Preamble/);
-	});
-
 	it("returns empty array for empty input", () => {
 		assert.deepEqual(splitSlides(""), []);
 	});
 
 	it("skips YAML front matter at start of file", () => {
-		const input = "---\ntitle: My Notes\ndate: 2024-01-01\n---\n# Preamble\n<!-- slide -->\n# Slide 1\n<!-- slide -->\n# Slide 2";
+		const input = "---\ntitle: My Notes\ndate: 2024-01-01\n---\n# Preamble\n<!-- slide -->\n# Slide 1\n<!-- slide -->";
 		const result = splitSlides(input);
-		assert.equal(result.length, 2);
+		assert.equal(result.length, 1);
 		assert.match(result[0], /Slide 1/);
-		assert.match(result[1], /Slide 2/);
-		// Front matter and preamble must not appear in any slide
 		assert.doesNotMatch(result[0], /title:/);
 		assert.doesNotMatch(result[0], /Preamble/);
 	});
 
 	it("does not treat --- as a slide delimiter", () => {
-		// --- is a horizontal rule, not a separator; only <!-- slide --> splits slides
-		const input = "<!-- slide -->\n# Slide 1\n---\nMore content";
+		const input = "<!-- slide -->\n# Slide 1\n---\nMore content\n<!-- slide -->";
 		const result = splitSlides(input);
-		assert.equal(result.length, 1);  // --- doesn't split, so one slide
+		assert.equal(result.length, 1);
 		assert.match(result[0], /Slide 1/);
 		assert.match(result[0], /More content/);
 	});
@@ -209,34 +227,36 @@ describe("getSlides", () => {
 		assert.deepEqual(getSlides("# Just markdown, no diagrams"), []);
 	});
 
-	it("slide mode: splits by <!-- slide --> when delimiter is present", () => {
-		const input = "# Preamble\n<!-- slide -->\n# Slide 1\n```mermaid\ngraph TD\n  A-->B\n```\n<!-- slide -->\n# Slide 2\nParagraph";
+	it("slide mode: extracts paired slides", () => {
+		const input = "# Preamble\n<!-- slide -->\n# Slide 1\n```mermaid\ngraph TD\n  A-->B\n```\n<!-- slide -->\nGap\n<!-- slide -->\n# Slide 2\nParagraph\n<!-- slide -->";
 		const result = getSlides(input);
 		assert.equal(result.length, 2);
 		assert.match(result[0], /Slide 1/);
 		assert.match(result[1], /Slide 2/);
 	});
 
-	it("slide mode: preserves markdown content in each slide", () => {
-		const input = "<!-- slide -->\n# Title\nSome text.\n<!-- slide -->\n## Second\nMore text.";
+	it("slide mode: discards content outside pairs", () => {
+		const input = "<!-- slide -->\n# Title\nSome text.\n<!-- slide -->\nIgnored gap.\n<!-- slide -->\n## Second\nMore text.\n<!-- slide -->";
 		const result = getSlides(input);
+		assert.equal(result.length, 2);
 		assert.match(result[0], /Some text/);
 		assert.match(result[1], /More text/);
+		assert.doesNotMatch(result[0], /Ignored gap/);
 	});
 
 	it("slide mode: preserves mermaid-only slides", () => {
-		const input = "<!-- slide -->\n# Intro\n<!-- slide -->\n```mermaid\ngraph TD\n  A-->B\n```";
+		const input = "<!-- slide -->\n# Intro\n<!-- slide -->\n<!-- slide -->\n```mermaid\ngraph TD\n  A-->B\n```\n<!-- slide -->";
 		const result = getSlides(input);
 		assert.equal(result.length, 2);
 		assert.match(result[1], /graph TD/);
 	});
 
-	it("slide mode: discards preamble before first delimiter", () => {
-		const input = "# This is preamble\nNot a slide.\n<!-- slide -->\n# Actual slide";
+	it("slide mode: implicitly closes unclosed slide at EOF", () => {
+		const input = "# Preamble\n<!-- slide -->\n# Actual slide";
 		const result = getSlides(input);
 		assert.equal(result.length, 1);
 		assert.match(result[0], /Actual slide/);
-		assert.doesNotMatch(result[0], /preamble/);
+		assert.doesNotMatch(result[0], /Preamble/);
 	});
 
 });

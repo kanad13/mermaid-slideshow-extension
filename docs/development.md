@@ -1,32 +1,18 @@
 # Development Guide
 
-This is the single source of truth for developing, testing, and releasing on the `markmaid-slideshow` branch.
+This is the single source of truth for developing, testing, and releasing on the `markmaid-slideshow` branch. For architecture details, see [architecture.md](architecture.md).
 
 
-## What This Branch Builds
-
-This repository carries two independent VS Code extension tracks:
-
-| Branch | Extension ID | What it does |
-| --- | --- | --- |
-| `main` | `mermaid-slideshow` | Renders Mermaid diagrams as a slideshow (published, stable) |
-| `markmaid-slideshow` | `markdown-slideshow` | Renders full Markdown content as a navigable slideshow (this branch) |
-
-The two extensions are independent. Work on this branch never touches `main` and is never merged into it.
-
-**Key source files on this branch:**
+## Key Source Files
 
 | File | Purpose |
 | --- | --- |
 | `src/extension.js` | All extension logic: activation, slide extraction, webview panel management |
 | `src/webview.html` | Webview renderer: Markdown-to-HTML, Mermaid via CDN, slide navigation |
-| `test/` | Node.js unit tests |
-| `examples/test.md` | Classic mode test file (Mermaid diagrams only, no slide delimiters) |
-| `examples/slide-mode-demo.md` | Slide mode test file (mixed markdown + Mermaid, `<!-- slide -->` delimiters) |
-
-The extension supports two slide modes, auto-detected per file:
-- **Classic mode** (no `<!-- slide -->` in the file): each Mermaid code block is one slide
-- **Slide mode** (file contains `<!-- slide -->`): content is split at `<!-- slide -->` delimiters; each section is a full Markdown slide
+| `test/extension.test.js` | Node.js unit tests |
+| `examples/combined.md` | Slide mode test file with preamble, gaps, and mixed content |
+| `examples/slide-mode-demo.md` | Simpler slide mode test file |
+| `examples/test.md` | Mermaid-only test file (no slide delimiters, for backward-compat testing) |
 
 
 ## Prerequisites

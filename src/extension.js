@@ -54,16 +54,20 @@ function hasSlideDelimiter(rawText) {
 }
 
 /**
- * Splits a markdown document into logical slides.
+ * Splits a markdown document into logical slides using paired fence semantics.
  *
- * Splits on lines containing only <!-- slide --> (case-insensitive,
- * optional surrounding whitespace). Delimiters inside fenced code blocks
- * (``` or ::: mermaid) are ignored. Empty slides are skipped.
+ * Delimiters (<!-- slide -->, case-insensitive) work like code fences:
+ * the 1st opens a slide, the 2nd closes it, the 3rd opens the next, etc.
+ * Only content inside an open/close pair becomes a slide. Content outside
+ * any pair (preamble, gaps between pairs, trailing text after a close) is
+ * ignored. This lets authors keep notes, titles, or documentation in the
+ * same file without it appearing in the slideshow.
  *
- * Content before the first delimiter is treated as preamble and discarded —
- * only content between delimiters becomes a slide. This lets authors keep
- * titles, notes, or metadata above the first <!-- slide --> without it
- * appearing in the slideshow.
+ * If the file ends while a slide is still open (odd number of delimiters),
+ * the open slide is implicitly closed at EOF.
+ *
+ * Delimiters inside fenced code blocks (``` or ::: mermaid) are ignored.
+ * Empty slides (open immediately followed by close) are skipped.
  *
  * A leading YAML front matter block (line 0 = "---", closed by "---" or "...")
  * is detected and excluded from slide content.
@@ -94,7 +98,7 @@ function splitSlides(rawText) {
 	let current = [];
 	let insideFence = false;
 	let insideColonMermaid = false;
-	let seenFirstDelimiter = false;
+	let insideSlide = false;
 
 	for (let i = startLine; i < lines.length; i++) {
 		const line = lines[i];
@@ -102,41 +106,51 @@ function splitSlides(rawText) {
 		// Track triple-backtick code fences (any language)
 		if (/^```/.test(line)) {
 			insideFence = !insideFence;
-			current.push(line);
+			if (insideSlide) {
+				current.push(line);
+			}
 			continue;
 		}
 
 		// Track Azure DevOps style mermaid fences ::: mermaid ... :::
 		if (!insideFence && /^:::\s*mermaid/.test(line)) {
 			insideColonMermaid = true;
-			current.push(line);
+			if (insideSlide) {
+				current.push(line);
+			}
 			continue;
 		}
 		if (insideColonMermaid && /^:::\s*$/.test(line)) {
 			insideColonMermaid = false;
-			current.push(line);
+			if (insideSlide) {
+				current.push(line);
+			}
 			continue;
 		}
 
 		// Slide delimiters are only recognized outside of fenced blocks
 		if (!insideFence && !insideColonMermaid && DELIMITER.test(line)) {
-			// Content before the first delimiter is preamble — discard it.
-			// Only content between delimiters becomes a slide.
-			if (seenFirstDelimiter) {
+			if (insideSlide) {
+				// Closing delimiter — save the accumulated slide
 				const slideText = current.join("\n").trim();
 				if (slideText) {
 					slides.push(slideText);
 				}
+				current = [];
+				insideSlide = false;
+			} else {
+				// Opening delimiter — start accumulating a new slide
+				current = [];
+				insideSlide = true;
 			}
-			seenFirstDelimiter = true;
-			current = [];
-		} else {
+		} else if (insideSlide) {
 			current.push(line);
 		}
+		// Lines outside an open slide pair are silently discarded
 	}
 
-	// Trailing content after the last delimiter is the final slide
-	if (seenFirstDelimiter) {
+	// If file ends with an unclosed slide, treat EOF as implicit close
+	if (insideSlide) {
 		const last = current.join("\n").trim();
 		if (last) {
 			slides.push(last);
