@@ -13,9 +13,9 @@ This repository carries two independent VS Code extension tracks on separate bra
 | Branch | Extension ID | What it does |
 | --- | --- | --- |
 | `main` | `mermaid-slideshow` | Original extension. Renders only Mermaid diagrams as a slideshow. Published and stable. |
-| `markmaid-slideshow` | `markdown-slideshow` | Current extension. Renders full markdown content as a navigable slideshow. This branch. |
+| `markmaid-slideshow` | `markdown-presentation-tool` | Current extension. Renders full markdown content as a navigable slideshow. This branch. |
 
-**Why two branches instead of one?** The original `mermaid-slideshow` extension on `main` only extracted Mermaid diagram blocks and ignored all other markdown content. The `markdown-slideshow` extension is a fundamentally different product — it renders full markdown slides with mixed content. Rather than breaking existing users of the Mermaid-only extension, the new extension was developed on a separate branch under a separate extension ID. The two branches are never merged into each other.
+**Why two branches instead of one?** The original `mermaid-slideshow` extension on `main` only extracted Mermaid diagram blocks and ignored all other markdown content. The `markdown-presentation-tool` extension is a fundamentally different product — it renders full markdown slides with mixed content. Rather than breaking existing users of the Mermaid-only extension, the new extension was developed on a separate branch under a separate extension ID. The two branches are never merged into each other.
 
 ## Slide Extraction Pipeline
 
@@ -64,7 +64,7 @@ When the source document changes in the editor:
 5. The webview receives the message, replaces its slide array, and re-renders the current slide (clamping the index if slides were removed).
 
 The webview is also fully re-rendered (not just updated via message) when:
-- The user changes the `markdownSlideshow.theme` setting.
+- The user changes the `markdownPresentation.theme` setting.
 - The VS Code color theme changes (which affects the auto-detected Mermaid theme).
 
 ## Key Files

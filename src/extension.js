@@ -207,7 +207,7 @@ function getNonce() {
  * @returns {string} Resolved Mermaid theme name
  */
 function resolveTheme() {
-	const setting = vscode.workspace.getConfiguration("markdownSlideshow").get("theme", "default");
+	const setting = vscode.workspace.getConfiguration("markdownPresentation").get("theme", "default");
 	if (setting !== "default") {
 		return setting;
 	}
@@ -297,14 +297,14 @@ function postSlidesUpdate(panel, slides) {
  * @param {vscode.ExtensionContext} context - Extension context provided by VS Code
  */
 function activate(context) {
-	console.log("markdownSlideshow extension activated");
+	console.log("markdownPresentation extension activated");
 
 	let currentPanel = undefined;
 	let currentDocument = undefined;
 	let debounceTimer = undefined;
 
 	const disposable = vscode.commands.registerCommand(
-		"markdownSlideshow.showPreview",
+		"markdownPresentation.showPreview",
 		function () {
 			const editor = vscode.window.activeTextEditor;
 			if (!editor) {
@@ -328,7 +328,7 @@ function activate(context) {
 				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
 			} else {
 				currentPanel = vscode.window.createWebviewPanel(
-					"markdownSlideshow",
+					"markdownPresentation",
 					"Markdown Presentation",
 					vscode.ViewColumn.Beside,
 					{ enableScripts: true }
@@ -370,7 +370,7 @@ function activate(context) {
 	const changeConfigSubscription = vscode.workspace.onDidChangeConfiguration(
 		(e) => {
 			if (
-				e.affectsConfiguration("markdownSlideshow.theme") &&
+				e.affectsConfiguration("markdownPresentation.theme") &&
 				currentPanel &&
 				currentDocument
 			) {

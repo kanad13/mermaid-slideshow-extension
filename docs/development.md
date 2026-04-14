@@ -55,8 +55,8 @@ npm ci
 If `F5` debugging doesn't work (e.g. in a Codespace or remote container), build and install a `.vsix` package instead:
 
 ```bash
-npm run package                       # produces markdown-slideshow-X.Y.Z.vsix
-code --install-extension markdown-slideshow-*.vsix
+npm run package                       # produces markdown-presentation-tool-X.Y.Z.vsix
+code --install-extension markdown-presentation-tool-*.vsix
 ```
 
 Then reload VS Code (`Developer: Reload Window`) and open a markdown file to test.
@@ -64,7 +64,7 @@ Then reload VS Code (`Developer: Reload Window`) and open a markdown file to tes
 To uninstall afterward:
 
 ```bash
-code --uninstall-extension KunalPathak.markdown-slideshow
+code --uninstall-extension KunalPathak.markdown-presentation-tool
 ```
 
 The `.vsix` file is git-ignored. Do not commit it.

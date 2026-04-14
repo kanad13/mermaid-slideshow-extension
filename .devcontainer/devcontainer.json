@@ -10,7 +10,7 @@
 		"vscode": {
 			"extensions": [
 				"KunalPathak.lightweight-markdown-preview",
-				"KunalPathak.markdown-slideshow",
+				"KunalPathak.markdown-presentation-tool",
 				"KunalPathak.safe-pdf-viewer",
 				"esbenp.prettier-vscode"
 			]

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-04-14
+
+### Changed
+- Extension ID renamed from `markdown-slideshow` to `markdown-presentation-tool`
+- Command ID renamed from `markdownSlideshow.showPreview` to `markdownPresentation.showPreview`
+- Configuration key renamed from `markdownSlideshow.theme` to `markdownPresentation.theme`
+
 ## [0.2.0] - 2026-04-14
 
 ### Added

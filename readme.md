@@ -2,7 +2,7 @@
 
 **Transform your Markdown files into interactive slide decks instantly. Present your documents directly from VS Code—just like PowerPoint, but powered by Markdown.**
 
-[Markdown Presentation Tool](https://marketplace.visualstudio.com/items?itemName=KunalPathak.markdown-slideshow) is a lightweight extension for developers and writers who need to present documentation, meeting notes, or architecture diagrams without the friction of external software.
+[Markdown Presentation Tool](https://marketplace.visualstudio.com/items?itemName=KunalPathak.markdown-presentation-tool) is a lightweight extension for developers and writers who need to present documentation, meeting notes, or architecture diagrams without the friction of external software.
 
 Stop wasting time exporting to PDF or building clunky PPT files. Write your content in plain text and launch a beautiful, navigable slideshow with a single click.
 
@@ -19,7 +19,7 @@ Stop wasting time exporting to PDF or building clunky PPT files. Write your cont
 
 ## Getting Started
 
-1. **Install** the extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=KunalPathak.markdown-slideshow).
+1. **Install** the extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=KunalPathak.markdown-presentation-tool).
 2. **Open** any Markdown (`.md`) file.
 3. **Launch the Presentation:**
    - Click the **Presentation Icon** in the editor title bar (top right).
@@ -68,7 +68,7 @@ You can read your notes in the editor while your audience sees the clean, render
 
 Tailor the visual output in your VS Code Settings:
 
-- `markdownSlideshow.theme`: Choose your Mermaid theme (`default`, `dark`, `forest`, or `neutral`). By default, it auto-detects based on your VS Code theme.
+- `markdownPresentation.theme`: Choose your Mermaid theme (`default`, `dark`, `forest`, or `neutral`). By default, it auto-detects based on your VS Code theme.
 
 ## Contributing & Support
 
