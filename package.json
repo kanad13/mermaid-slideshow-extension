@@ -2,7 +2,7 @@
 	"name": "markdown-presentation-tool",
 	"displayName": "Markdown Presentation Tool",
 	"description": "Turn any Markdown file into a navigable slide deck inside VS Code. Wrap content in <!-- slide --> tags, present with one click. Supports Mermaid diagrams, code blocks, and full Markdown rendering with live updates.",
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"icon": "assets/icon.png",
 	"publisher": "KunalPathak",
 	"author": "Kunal Pathak",
@@ -44,7 +44,7 @@
 				"command": "markdownPresentation.showPreview",
 				"title": "Show Markdown Presentation",
 				"category": "Markdown",
-				"icon": "$(open-preview)"
+				"icon": "$(feedback)"
 			}
 		],
 		"menus": {

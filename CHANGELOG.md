@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1] - 2026-04-17
+
+### Fixed
+- Reverted editor title bar icon back to `$(feedback)` — the switch to `$(open-preview)` introduced in v1.0.0 was unintentional
+
 ## [1.1.0] - 2026-04-17
 
 ### Changed
