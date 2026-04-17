@@ -48,7 +48,7 @@ This mode exists so that files written for the original Mermaid-only extension c
 
 The webview is a single HTML file (`src/webview.html`) that handles both modes through the same code path:
 
-1. **Template injection** — `getWebviewContent()` reads `src/webview.html` and replaces placeholder tokens (`{{NONCE}}`, `{{THEME}}`, `{{SLIDES_JSON}}`, `{{SINGLE_SLIDE_CLASS}}`) with runtime values.
+1. **Template injection** — `getWebviewContent()` reads `src/webview.html` and replaces placeholder tokens (`{{NONCE}}`, `{{THEME}}`, `{{SLIDES_JSON}}`, `{{BODY_CLASSES}}`) with runtime values.
 2. **Markdown-to-HTML** — `renderMarkdownToHtml()` is a lightweight inline parser in the webview that handles headings, paragraphs, lists (ordered/unordered), blockquotes, horizontal rules, inline formatting (bold, italic, code), fenced code blocks, and Mermaid fences.
 3. **Mermaid rendering** — Mermaid is loaded via CDN (`https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs`). After the markdown parser emits `<pre class="mermaid">` elements, `mermaid.run()` renders them to SVG.
 4. **CSP nonce** — Every webview render generates a fresh cryptographic nonce injected into the Content Security Policy header. Only scripts with the matching nonce can execute.
@@ -64,7 +64,7 @@ When the source document changes in the editor:
 5. The webview receives the message, replaces its slide array, and re-renders the current slide (clamping the index if slides were removed).
 
 The webview is also fully re-rendered (not just updated via message) when:
-- The user changes the `markdownPresentation.theme` setting.
+- The user changes any `markdownPresentation.*` setting (theme, counter visibility, navigation arrow visibility).
 - The VS Code color theme changes (which affects the auto-detected Mermaid theme).
 
 ## Key Files
@@ -74,9 +74,9 @@ The webview is also fully re-rendered (not just updated via message) when:
 | `src/extension.js` | All extension logic: activation, slide extraction (`getSlides`, `splitSlides`, `extractMermaidBlocks`), webview panel management, live update wiring |
 | `src/webview.html` | Webview renderer: markdown-to-HTML parser, Mermaid CDN initialization, slide navigation UI, keyboard/mouse handlers |
 | `test/extension.test.js` | Unit tests for slide extraction logic (uses Node.js built-in test runner) |
-| `examples/combined.md` | Test file demonstrating slide mode with mixed content, preamble, gaps between pairs |
-| `examples/slide-mode-demo.md` | Simpler slide mode test file |
-| `examples/test.md` | Mermaid-only test file (no slide delimiters, for backward-compat testing) |
+| `examples/01-classic-mode.md` | Mermaid-only test file (no slide delimiters, backward-compat testing) |
+| `examples/02-slide-mode-basics.md` | Happy-path slide mode examples — mixed content and both fence syntaxes |
+| `examples/03-slide-mode-advanced.md` | Slide mode edge cases — preamble, gaps, empty pairs, tall slide scroll |
 
 ## Design Decisions
 

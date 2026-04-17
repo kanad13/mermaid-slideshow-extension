@@ -2,7 +2,7 @@
 	"name": "markdown-presentation-tool",
 	"displayName": "Markdown Presentation Tool",
 	"description": "Turn any Markdown file into a navigable slide deck inside VS Code. Wrap content in <!-- slide --> tags, present with one click. Supports Mermaid diagrams, code blocks, and full Markdown rendering with live updates.",
-	"version": "0.3.0",
+	"version": "1.1.0",
 	"icon": "assets/icon.png",
 	"publisher": "KunalPathak",
 	"author": "Kunal Pathak",
@@ -44,7 +44,7 @@
 				"command": "markdownPresentation.showPreview",
 				"title": "Show Markdown Presentation",
 				"category": "Markdown",
-				"icon": "$(feedback)"
+				"icon": "$(open-preview)"
 			}
 		],
 		"menus": {
@@ -59,7 +59,7 @@
 		"configuration": {
 			"title": "Markdown Presentation Tool",
 			"properties": {
-				"markdownPresentation.theme": {
+				"markdownPresentation.mermaid.theme": {
 					"type": "string",
 					"default": "default",
 					"enum": [
@@ -69,12 +69,22 @@
 						"neutral"
 					],
 					"enumDescriptions": [
-						"Auto-detect from VS Code theme (uses dark for dark/high-contrast themes)",
+						"Auto-detect from VS Code color theme (uses Mermaid dark theme for dark/high-contrast VS Code themes)",
 						"Dark background, light text",
 						"Green-toned, nature-inspired palette",
 						"Grayscale, high-contrast, print-friendly"
 					],
-					"description": "Color theme for rendered Mermaid diagrams. When set to 'default', automatically matches your VS Code color theme."
+					"description": "Color theme applied to Mermaid diagrams rendered inside slides. When set to 'default', automatically matches your VS Code color theme."
+				},
+				"markdownPresentation.slide.showCounter": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show the slide counter (e.g. '1 / 4') in the bottom-right corner during multi-slide presentations."
+				},
+				"markdownPresentation.slide.showNavigationArrows": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show the on-screen previous/next arrow buttons on the sides of each slide. Keyboard navigation (arrow keys, Space, PageUp/PageDown) always remains available."
 				}
 			}
 		}

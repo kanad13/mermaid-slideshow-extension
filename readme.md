@@ -6,6 +6,8 @@
 
 Stop wasting time exporting to PDF or building clunky PPT files. Write your content in plain text and launch a beautiful, navigable slideshow with a single click.
 
+![Markdown Presentation Tool — 30-second pitch](assets/demo-short.gif)
+
 ## Key Features
 
 - **The "PowerPoint" Experience for Markdown:** Ditch heavy presentation software. Present your `.md` files directly within the VS Code interface.
@@ -55,6 +57,10 @@ Write your detailed background info, reminders, or script directly in the Markdo
 
 You can read your notes in the editor while your audience sees the clean, rendered slides in the preview panel.
 
+## See It In Action
+
+![Markdown Presentation Tool — full feature tour](assets/demo-long.gif)
+
 ## Navigation & Controls
 
 | Action              | Input                                                            |
@@ -68,7 +74,9 @@ You can read your notes in the editor while your audience sees the clean, render
 
 Tailor the visual output in your VS Code Settings:
 
-- `markdownPresentation.theme`: Choose your Mermaid theme (`default`, `dark`, `forest`, or `neutral`). By default, it auto-detects based on your VS Code theme.
+- `markdownPresentation.mermaid.theme`: Choose your Mermaid diagram theme (`default`, `dark`, `forest`, or `neutral`). By default, it auto-detects based on your VS Code theme.
+- `markdownPresentation.slide.showCounter`: Show or hide the bottom-right slide counter (default: `true`).
+- `markdownPresentation.slide.showNavigationArrows`: Show or hide the on-screen prev/next arrows (default: `true`). Keyboard navigation is unaffected.
 
 ## Contributing & Support
 

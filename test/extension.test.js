@@ -1,7 +1,11 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 
-// Minimal vscode stub - extension.js requires vscode at module level
+// Minimal vscode stub - extension.js requires vscode at module level.
+// Tests can mutate `configValues` and `colorThemeKind` to drive resolveSettings().
+const configValues = {};
+const colorThemeState = { kind: 1 };
+
 const Module = require("node:module");
 const originalResolve = Module._resolveFilename;
 Module._resolveFilename = function (request, ...args) {
@@ -11,15 +15,29 @@ Module._resolveFilename = function (request, ...args) {
 require.cache["vscode"] = {
 	id: "vscode", filename: "vscode", loaded: true,
 	exports: {
-		workspace: { getConfiguration: () => ({ get: () => "default" }), onDidChangeTextDocument: () => ({ dispose() {} }), onDidChangeConfiguration: () => ({ dispose() {} }) },
-		window: { activeColorTheme: { kind: 1 }, onDidChangeActiveColorTheme: () => ({ dispose() {} }) },
+		workspace: {
+			getConfiguration: () => ({
+				get: (key, defaultValue) => (key in configValues ? configValues[key] : defaultValue),
+			}),
+			onDidChangeTextDocument: () => ({ dispose() {} }),
+			onDidChangeConfiguration: () => ({ dispose() {} }),
+		},
+		window: {
+			get activeColorTheme() { return { kind: colorThemeState.kind }; },
+			onDidChangeActiveColorTheme: () => ({ dispose() {} }),
+		},
 		commands: { registerCommand: () => ({ dispose() {} }) },
 		ColorThemeKind: { Light: 1, Dark: 2, HighContrast: 3 },
 		ViewColumn: { Beside: 2 },
 	}
 };
 
-const { extractMermaidBlocks, hasSlideDelimiter, splitSlides, getSlides } = require("../src/extension");
+const { extractMermaidBlocks, hasSlideDelimiter, splitSlides, getSlides, resolveSettings } = require("../src/extension");
+
+function resetConfig() {
+	for (const k of Object.keys(configValues)) delete configValues[k];
+	colorThemeState.kind = 1;
+}
 
 describe("extractMermaidBlocks", () => {
 
@@ -257,6 +275,47 @@ describe("getSlides", () => {
 		assert.equal(result.length, 1);
 		assert.match(result[0], /Actual slide/);
 		assert.doesNotMatch(result[0], /Preamble/);
+	});
+
+});
+
+describe("resolveSettings", () => {
+
+	it("returns defaults when no config is set (Light theme)", () => {
+		resetConfig();
+		colorThemeState.kind = 1; // Light
+		const s = resolveSettings();
+		assert.equal(s.mermaidTheme, "default");
+		assert.equal(s.showCounter, true);
+		assert.equal(s.showNavigationArrows, true);
+	});
+
+	it("resolves 'default' mermaid theme to 'dark' on Dark VS Code theme", () => {
+		resetConfig();
+		colorThemeState.kind = 2; // Dark
+		assert.equal(resolveSettings().mermaidTheme, "dark");
+	});
+
+	it("resolves 'default' mermaid theme to 'dark' on HighContrast VS Code theme", () => {
+		resetConfig();
+		colorThemeState.kind = 3; // HighContrast
+		assert.equal(resolveSettings().mermaidTheme, "dark");
+	});
+
+	it("passes through an explicit mermaid theme override", () => {
+		resetConfig();
+		configValues["mermaid.theme"] = "forest";
+		colorThemeState.kind = 2; // Dark — should be ignored
+		assert.equal(resolveSettings().mermaidTheme, "forest");
+	});
+
+	it("reads slide.showCounter and slide.showNavigationArrows as booleans", () => {
+		resetConfig();
+		configValues["slide.showCounter"] = false;
+		configValues["slide.showNavigationArrows"] = false;
+		const s = resolveSettings();
+		assert.equal(s.showCounter, false);
+		assert.equal(s.showNavigationArrows, false);
 	});
 
 });

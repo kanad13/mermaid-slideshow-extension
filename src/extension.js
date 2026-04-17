@@ -198,22 +198,29 @@ function getNonce() {
 }
 
 /**
- * Resolves the effective Mermaid theme based on user setting and VS Code color theme.
+ * Reads user-configurable settings and resolves derived values.
  *
- * When the user setting is "default", auto-detects VS Code's color theme kind
- * and returns "dark" for dark/high-contrast themes, "default" for light themes.
- * Explicit user choices (dark, forest, neutral) are returned as-is.
+ * Returns an object with:
+ * - mermaidTheme: the effective Mermaid theme. When the user setting is
+ *   "default", auto-detects VS Code's color theme kind and returns "dark"
+ *   for dark/high-contrast themes, "default" for light themes. Explicit
+ *   user choices (dark, forest, neutral) are returned as-is.
+ * - showCounter: whether the slide counter should be visible.
+ * - showNavigationArrows: whether the on-screen prev/next arrows should be visible.
  *
- * @returns {string} Resolved Mermaid theme name
+ * @returns {{mermaidTheme: string, showCounter: boolean, showNavigationArrows: boolean}}
  */
-function resolveTheme() {
-	const setting = vscode.workspace.getConfiguration("markdownPresentation").get("theme", "default");
-	if (setting !== "default") {
-		return setting;
-	}
+function resolveSettings() {
+	const cfg = vscode.workspace.getConfiguration("markdownPresentation");
+	const themeSetting = cfg.get("mermaid.theme", "default");
 	const kind = vscode.window.activeColorTheme.kind;
 	const isDark = kind === vscode.ColorThemeKind.Dark || kind === vscode.ColorThemeKind.HighContrast;
-	return isDark ? "dark" : "default";
+	const mermaidTheme = themeSetting === "default" ? (isDark ? "dark" : "default") : themeSetting;
+	return {
+		mermaidTheme,
+		showCounter: cfg.get("slide.showCounter", true),
+		showNavigationArrows: cfg.get("slide.showNavigationArrows", true),
+	};
 }
 
 /**
@@ -227,10 +234,10 @@ function resolveTheme() {
  *
  * @param {string[]} slides - Array of slide strings (raw markdown)
  * @param {string} nonce - CSP nonce token
- * @param {string} theme - Mermaid theme name (default, dark, forest, neutral)
+ * @param {{mermaidTheme: string, showCounter: boolean, showNavigationArrows: boolean}} settings - Resolved user settings
  * @returns {string} Complete HTML page
  */
-function getWebviewContent(slides, nonce, theme) {
+function getWebviewContent(slides, nonce, settings) {
 	if (slides.length === 0) {
 		return `<!DOCTYPE html>
 <html lang="en">
@@ -265,10 +272,16 @@ function getWebviewContent(slides, nonce, theme) {
 	const templatePath = path.join(__dirname, "webview.html");
 	let html = fs.readFileSync(templatePath, "utf8");
 
+	const bodyClasses = [
+		slides.length === 1 ? "single-slide" : "",
+		settings.showCounter ? "" : "hide-counter",
+		settings.showNavigationArrows ? "" : "hide-nav",
+	].filter(Boolean).join(" ");
+
 	html = html.replace(/\{\{NONCE\}\}/g, nonce);
-	html = html.replace("{{THEME}}", theme);
+	html = html.replace("{{THEME}}", settings.mermaidTheme);
 	html = html.replace("{{SLIDES_JSON}}", JSON.stringify(slides).replace(/</g, "\\u003c"));
-	html = html.replace("{{SINGLE_SLIDE_CLASS}}", slides.length === 1 ? "single-slide" : "");
+	html = html.replace("{{BODY_CLASSES}}", bodyClasses);
 
 	return html;
 }
@@ -319,13 +332,13 @@ function activate(context) {
 			}
 
 			const slides = getSlides(doc.getText());
-			const theme = resolveTheme();
+			const settings = resolveSettings();
 			const nonce = getNonce();
 
 			if (currentPanel) {
 				currentPanel.reveal(vscode.ViewColumn.Beside);
 				currentDocument = doc;
-				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
+				currentPanel.webview.html = getWebviewContent(slides, nonce, settings);
 			} else {
 				currentPanel = vscode.window.createWebviewPanel(
 					"markdownPresentation",
@@ -335,7 +348,7 @@ function activate(context) {
 				);
 
 				currentDocument = doc;
-				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
+				currentPanel.webview.html = getWebviewContent(slides, nonce, settings);
 
 				currentPanel.onDidDispose(
 					() => {
@@ -366,18 +379,18 @@ function activate(context) {
 		}
 	);
 
-	// Re-render webview when theme configuration changes
+	// Re-render webview when any Markdown Presentation setting changes
 	const changeConfigSubscription = vscode.workspace.onDidChangeConfiguration(
 		(e) => {
 			if (
-				e.affectsConfiguration("markdownPresentation.theme") &&
+				e.affectsConfiguration("markdownPresentation") &&
 				currentPanel &&
 				currentDocument
 			) {
-				const theme = resolveTheme();
+				const settings = resolveSettings();
 				const nonce = getNonce();
 				const slides = getSlides(currentDocument.getText());
-				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
+				currentPanel.webview.html = getWebviewContent(slides, nonce, settings);
 			}
 		}
 	);
@@ -386,10 +399,10 @@ function activate(context) {
 	const changeColorThemeSubscription = vscode.window.onDidChangeActiveColorTheme(
 		() => {
 			if (currentPanel && currentDocument) {
-				const theme = resolveTheme();
+				const settings = resolveSettings();
 				const nonce = getNonce();
 				const slides = getSlides(currentDocument.getText());
-				currentPanel.webview.html = getWebviewContent(slides, nonce, theme);
+				currentPanel.webview.html = getWebviewContent(slides, nonce, settings);
 			}
 		}
 	);
@@ -409,4 +422,5 @@ module.exports = {
 	hasSlideDelimiter,
 	splitSlides,
 	getSlides,
+	resolveSettings,
 };

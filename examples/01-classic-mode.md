@@ -8,7 +8,7 @@ This file contains diverse Mermaid diagram types for testing classic mode render
 
 - In **classic mode** (this file): each Mermaid code block becomes one slide.
 
-- In **slide mode**: add `<!-- slide -->` delimiters to create mixed-content slides with text and diagrams. See `examples/slide-mode-demo.md` for a demo.
+- In **slide mode**: add `<!-- slide -->` delimiters to create mixed-content slides with text and diagrams. See `examples/02-slide-mode-basics.md` for a demo.
 
 - Make a presentation directly from your markdown notes. No extra setup, no exports.
 

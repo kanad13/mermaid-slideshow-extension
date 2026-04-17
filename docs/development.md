@@ -10,9 +10,11 @@ This is the single source of truth for developing, testing, and releasing on the
 | `src/extension.js` | All extension logic: activation, slide extraction, webview panel management |
 | `src/webview.html` | Webview renderer: Markdown-to-HTML, Mermaid via CDN, slide navigation |
 | `test/extension.test.js` | Node.js unit tests |
-| `examples/combined.md` | Slide mode test file with preamble, gaps, and mixed content |
-| `examples/slide-mode-demo.md` | Simpler slide mode test file |
-| `examples/test.md` | Mermaid-only test file (no slide delimiters, for backward-compat testing) |
+| `examples/01-classic-mode.md` | Classic mode test file (no slide delimiters) — one slide per Mermaid diagram, for backward compatibility |
+| `examples/02-slide-mode-basics.md` | Slide mode happy-path examples — text + diagrams, mermaid-only slides, both fence syntaxes |
+| `examples/03-slide-mode-advanced.md` | Slide mode edge cases — preamble, gaps, empty pairs, tall slide with Shift+scroll |
+| `examples/demo-script-short.md` | Recording script for the 30-second pitch video |
+| `examples/demo-script-long.md` | Recording script for the 3-minute feature-tour video |
 
 
 ## Prerequisites
@@ -46,7 +48,7 @@ npm ci
 
 1. Open the repository in VS Code.
 2. Press `F5` to launch the Extension Development Host.
-3. In the host window, open `examples/test.md` (classic mode) or `examples/slide-mode-demo.md` (slide mode).
+3. In the host window, open `examples/01-classic-mode.md` (classic mode) or `examples/02-slide-mode-basics.md` (slide mode).
 4. Open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and run `Markdown: Show Markdown Presentation`.
 5. Verify slide rendering and navigation.
 
