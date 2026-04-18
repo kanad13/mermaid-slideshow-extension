@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2026-04-18
+
+### Changed
+- Migrated to standalone repository at github.com/kanad13/markdown-presentation-tool
+
 ## [1.2.0] - 2026-04-18
 
 ### Added

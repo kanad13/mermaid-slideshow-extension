@@ -104,7 +104,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish to VS Code Marketplace
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        run: ./node_modules/.bin/vsce publish --pat "$VSCE_PAT"
+      # Marketplace publish is done manually after the release artifact is verified.
+      # Run: vsce publish --pat <your-pat>  (from the repo root after npm ci)

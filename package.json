@@ -2,7 +2,7 @@
 	"name": "markdown-presentation-tool",
 	"displayName": "Markdown Presentation Tool",
 	"description": "Turn any Markdown file into a navigable slide deck inside VS Code. Wrap content in <!-- slide --> tags, present with one click. Supports Mermaid diagrams, code blocks, and full Markdown rendering with live updates.",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"icon": "assets/icon.png",
 	"publisher": "KunalPathak",
 	"author": "Kunal Pathak",
@@ -89,18 +89,26 @@
 				"markdownPresentation.slide.headingAlignment": {
 					"type": "string",
 					"default": "left",
-					"enum": ["left", "center", "right"],
+					"enum": [
+						"left",
+						"center",
+						"right"
+					],
 					"enumDescriptions": [
 						"Align headings to the left (default)",
 						"Center headings horizontally",
 						"Align headings to the right"
 					],
-					"description": "Horizontal alignment for all heading levels (h1\u2013h6) inside slides."
+					"description": "Horizontal alignment for all heading levels (h1–h6) inside slides."
 				},
 				"markdownPresentation.slide.contentAlignment": {
 					"type": "string",
 					"default": "left",
-					"enum": ["left", "center", "right"],
+					"enum": [
+						"left",
+						"center",
+						"right"
+					],
 					"enumDescriptions": [
 						"Align text to the left (default)",
 						"Center all text content",
@@ -111,7 +119,11 @@
 				"markdownPresentation.slide.fontSize": {
 					"type": "string",
 					"default": "medium",
-					"enum": ["small", "medium", "large"],
+					"enum": [
+						"small",
+						"medium",
+						"large"
+					],
 					"enumDescriptions": [
 						"Small text (0.85em)",
 						"Normal text size (1em, default)",
