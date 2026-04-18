@@ -3,21 +3,22 @@ const assert = require("node:assert/strict");
 
 // Minimal vscode stub - extension.js requires vscode at module level.
 // Tests can mutate `configValues` and `colorThemeKind` to drive resolveSettings().
+/** @type {Record<string, unknown>} */
 const configValues = {};
 const colorThemeState = { kind: 1 };
 
-const Module = require("node:module");
+const Module = /** @type {any} */ (require("node:module"));
 const originalResolve = Module._resolveFilename;
-Module._resolveFilename = function (request, ...args) {
+Module._resolveFilename = function (/** @type {string} */ request, /** @type {any[]} */ ...args) {
 	if (request === "vscode") return "vscode";
 	return originalResolve.call(this, request, ...args);
 };
-require.cache["vscode"] = {
+/** @type {any} */ (require.cache)["vscode"] = {
 	id: "vscode", filename: "vscode", loaded: true,
 	exports: {
 		workspace: {
 			getConfiguration: () => ({
-				get: (key, defaultValue) => (key in configValues ? configValues[key] : defaultValue),
+				get: (/** @type {string} */ key, /** @type {unknown} */ defaultValue) => (key in configValues ? configValues[key] : defaultValue),
 			}),
 			onDidChangeTextDocument: () => ({ dispose() {} }),
 			onDidChangeConfiguration: () => ({ dispose() {} }),
@@ -32,7 +33,7 @@ require.cache["vscode"] = {
 	}
 };
 
-const { extractMermaidBlocks, hasSlideDelimiter, splitSlides, getSlides, resolveSettings } = require("../src/extension");
+const { extractMermaidBlocks, hasSlideDelimiter, splitSlides, getSlides, resolveSettings, getWebviewContent } = require("../src/extension");
 
 function resetConfig() {
 	for (const k of Object.keys(configValues)) delete configValues[k];
@@ -304,7 +305,7 @@ describe("resolveSettings", () => {
 
 	it("passes through an explicit mermaid theme override", () => {
 		resetConfig();
-		configValues["mermaid.theme"] = "forest";
+		configValues["slide.mermaidTheme"] = "forest";
 		colorThemeState.kind = 2; // Dark — should be ignored
 		assert.equal(resolveSettings().mermaidTheme, "forest");
 	});
@@ -316,6 +317,115 @@ describe("resolveSettings", () => {
 		const s = resolveSettings();
 		assert.equal(s.showCounter, false);
 		assert.equal(s.showNavigationArrows, false);
+	});
+
+	it("returns defaults for new styling settings when not configured", () => {
+		resetConfig();
+		const s = resolveSettings();
+		assert.equal(s.headingAlignment, "left");
+		assert.equal(s.contentAlignment, "left");
+		assert.equal(s.fontSize, "medium");
+		assert.equal(s.backgroundColor, "");
+	});
+
+	it("reads headingAlignment, contentAlignment, fontSize, and backgroundColor", () => {
+		resetConfig();
+		configValues["slide.headingAlignment"] = "center";
+		configValues["slide.contentAlignment"] = "right";
+		configValues["slide.fontSize"] = "large";
+		configValues["slide.backgroundColor"] = "#1e1e1e";
+		const s = resolveSettings();
+		assert.equal(s.headingAlignment, "center");
+		assert.equal(s.contentAlignment, "right");
+		assert.equal(s.fontSize, "large");
+		assert.equal(s.backgroundColor, "#1e1e1e");
+	});
+
+	it("reads small fontSize setting", () => {
+		resetConfig();
+		configValues["slide.fontSize"] = "small";
+		assert.equal(resolveSettings().fontSize, "small");
+	});
+
+});
+
+describe("getWebviewContent", () => {
+
+	const defaultSettings = { mermaidTheme: "default", showCounter: true, showNavigationArrows: true, headingAlignment: "left", contentAlignment: "left", fontSize: "medium", backgroundColor: "" };
+	const nonce = "testnonce123";
+
+	it("returns empty-state HTML with 'No slides found' heading when slides array is empty", () => {
+		const html = getWebviewContent([], nonce, defaultSettings);
+		assert.ok(html.includes("<h2>No slides found</h2>"), "missing h2 heading");
+		assert.ok(!html.includes("{{CUSTOM_STYLES}}"), "placeholder left unreplaced");
+	});
+
+	it("replaces all placeholders when slides are present", () => {
+		const html = getWebviewContent(["# Hello"], nonce, defaultSettings);
+		assert.ok(!html.includes("{{NONCE}}"), "NONCE placeholder left");
+		assert.ok(!html.includes("{{THEME}}"), "THEME placeholder left");
+		assert.ok(!html.includes("{{SLIDES_JSON}}"), "SLIDES_JSON placeholder left");
+		assert.ok(!html.includes("{{BODY_CLASSES}}"), "BODY_CLASSES placeholder left");
+		assert.ok(!html.includes("{{CUSTOM_STYLES}}"), "CUSTOM_STYLES placeholder left");
+	});
+
+	it("injects no custom CSS when all settings are at defaults", () => {
+		const html = getWebviewContent(["# Hello"], nonce, defaultSettings);
+		const stylesMatch = html.match(/\/\* custom \*\/([\s\S]*?)<\/style>/);
+		const injected = stylesMatch ? stylesMatch[1].trim() : "";
+		assert.equal(injected, "", "expected empty custom styles block");
+	});
+
+	it("injects heading alignment CSS for non-default headingAlignment", () => {
+		const html = getWebviewContent(["# Hello"], nonce, { ...defaultSettings, headingAlignment: "center" });
+		assert.ok(html.includes("text-align: center"), "missing heading alignment rule");
+		assert.ok(html.includes(".slide-inner h1"), "missing heading selector");
+	});
+
+	it("injects content alignment CSS for non-default contentAlignment", () => {
+		const html = getWebviewContent(["# Hello"], nonce, { ...defaultSettings, contentAlignment: "right" });
+		assert.ok(html.includes(".slide-inner { text-align: right; }"), "missing content alignment rule");
+	});
+
+	it("injects font-size 0.85em for fontSize: small", () => {
+		const html = getWebviewContent(["# Hello"], nonce, { ...defaultSettings, fontSize: "small" });
+		assert.ok(html.includes("font-size: 0.85em"), "missing small font size rule");
+	});
+
+	it("injects font-size 1.25em for fontSize: large", () => {
+		const html = getWebviewContent(["# Hello"], nonce, { ...defaultSettings, fontSize: "large" });
+		assert.ok(html.includes("font-size: 1.25em"), "missing large font size rule");
+	});
+
+	it("injects background color rule when backgroundColor is non-empty", () => {
+		const html = getWebviewContent(["# Hello"], nonce, { ...defaultSettings, backgroundColor: "#1e1e1e" });
+		assert.ok(html.includes("body { background: #1e1e1e; }"), "missing background color rule");
+	});
+
+	it("does not inject background rule when backgroundColor is empty string", () => {
+		const html = getWebviewContent(["# Hello"], nonce, defaultSettings);
+		assert.ok(!html.includes("body { background:"), "unexpected background rule");
+	});
+
+	it("escapes < in SLIDES_JSON to prevent injection", () => {
+		const html = getWebviewContent(["<script>alert(1)</script>"], nonce, defaultSettings);
+		assert.ok(!html.includes("<script>alert"), "unescaped < in SLIDES_JSON");
+		assert.ok(html.includes("\\u003cscript"), "< not unicode-escaped");
+	});
+
+	it("adds single-slide body class for a one-slide deck", () => {
+		const html = getWebviewContent(["# Only slide"], nonce, defaultSettings);
+		assert.ok(html.includes("single-slide"), "missing single-slide class");
+	});
+
+	it("adds hide-counter body class when showCounter is false", () => {
+		const html = getWebviewContent(["# Slide"], nonce, { ...defaultSettings, showCounter: false });
+		assert.ok(html.includes("hide-counter"), "missing hide-counter class");
+	});
+
+	it("adds hide-nav body class when showNavigationArrows is false", () => {
+		const html = getWebviewContent(["# Slide"], nonce, { ...defaultSettings, showNavigationArrows: false });
+		assert.ok(html.includes("hide-nav"), "missing hide-nav class");
 	});
 
 });

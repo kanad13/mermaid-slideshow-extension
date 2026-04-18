@@ -28,6 +28,9 @@ The two delimiters immediately above this slide form an empty open/close pair. E
 
 <!-- slide -->
 
+
+<!-- slide -->
+
 ## Tall Slide — Shift + Scroll
 
 This slide has enough content to exceed the viewport. Use **Shift + mouse wheel** to scroll within this slide without changing to the next one.
@@ -76,6 +79,8 @@ the delimiter (not `---`).
 More content to ensure this slide requires scrolling in a typical
 viewport. The `.slide-content` container should show a scrollbar,
 and `Shift + wheel` should scroll vertically within this slide.
+
+<!-- slide -->
 
 <!-- slide -->
 

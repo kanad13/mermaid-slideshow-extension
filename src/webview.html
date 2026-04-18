@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}' https://cdn.jsdelivr.net; style-src 'unsafe-inline';">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; img-src https: data:;">
 	<title>Markdown Presentation</title>
 	<style>
 		* { box-sizing: border-box; margin: 0; padding: 0; }
@@ -101,6 +101,15 @@
 			height: auto;
 		}
 
+		.slide-inner img {
+			max-width: 100%;
+			max-height: calc(100vh - 200px);
+			height: auto;
+			display: block;
+			margin: 0.6em auto;
+			object-fit: contain;
+		}
+
 		.slide-counter {
 			position: fixed;
 			bottom: 16px;
@@ -157,6 +166,9 @@
 
 		.hide-counter .slide-counter { display: none; }
 		.hide-nav .nav-arrow { display: none; }
+
+		/* User-configurable style overrides */
+		{{CUSTOM_STYLES}}
 	</style>
 </head>
 <body class="{{BODY_CLASSES}}">
@@ -191,7 +203,8 @@
 			return str
 				.replace(/&/g, '&amp;')
 				.replace(/</g, '&lt;')
-				.replace(/>/g, '&gt;');
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;');
 		}
 
 		function renderInline(text) {
@@ -293,7 +306,17 @@
 				}
 				closeList();
 
-				// ── Blockquotes
+				// ── Images (must be checked before blockquotes/paragraphs)
+				// Note: URLs containing literal ')' will be truncated — known limitation of the greedy [^)]+ pattern.
+				const imgMatch = line.match(/^!\[([^\]]*)\]\((https?:\/\/[^)]+)\)$/);
+				if (imgMatch) {
+					const alt = escapeHtml(imgMatch[1]);
+					const src = escapeHtml(imgMatch[2]);
+					html += '<img src="' + src + '" alt="' + alt + '" />';
+					continue;
+				}
+
+			// ── Blockquotes
 				const quoteMatch = line.match(/^\s*>\s?(.*)/);
 				if (quoteMatch) {
 					html += '<blockquote>' + renderInline(quoteMatch[1]) + '</blockquote>';

@@ -1,23 +1,25 @@
 # Markdown Presentation & Slideshow for VS Code
 
-**Transform your Markdown files into interactive slide decks instantly. Present your documents directly from VS Code—just like PowerPoint, but powered by Markdown.**
+**Turn your Markdown files into interactive slide decks instantly.**
 
-[Markdown Presentation Tool](https://marketplace.visualstudio.com/items?itemName=KunalPathak.markdown-presentation-tool) is a lightweight extension for developers and writers who need to present documentation, meeting notes, or architecture diagrams without the friction of external software.
+**Present your documents directly from VS Code—just like PowerPoint, but powered by the simplicity of plain text.**
 
-Stop wasting time exporting to PDF or building clunky PPT files. Write your content in plain text and launch a beautiful, navigable slideshow with a single click.
+[Markdown Presentation Tool](https://marketplace.visualstudio.com/items?itemName=KunalPathak.markdown-presentation-tool) is a lightweight extension designed to present documentation, meeting notes, or architecture diagrams without the friction of external software.
 
-![Markdown Presentation Tool — 30-second pitch](assets/demo-short.gif)
+Stop wasting time exporting to PDF or building clunky PPT files. Write your content in Markdown and launch a beautiful, navigable slideshow with a single click.
+
+![Markdown Presentation Tool](https://raw.githubusercontent.com/kanad13/mermaid-slideshow-extension/refs/heads/markmaid-slideshow/assets/extension-demo.gif)
 
 ## Key Features
 
-- **The "PowerPoint" Experience for Markdown:** Ditch heavy presentation software. Present your `.md` files directly within the VS Code interface.
-- **Familiar Preview Workflow:** If you know how to use the VS Code Markdown preview, you already know how to use this. One click turns your notes into slides.
-- **Works with Any Markdown File:** No special formatting required. Just add `<!-- slide -->` comments to define your slides, and the extension does the rest.
-- **Native Mermaid Diagrams:** Full support for Mermaid.js (flowcharts, sequence diagrams, gantt charts) rendered perfectly within your slides.
-- **Integrated Presentation Notes:** Keep your private talking points and public slides in a single file. Only content within slide tags is shown during the presentation.
-- **Real-Time Live Sync:** Changes you make in the editor reflect instantly in the slideshow view.
-- **Theme Awareness:** Automatically syncs with your VS Code color theme (Light/Dark) for a seamless visual experience.
-- **Zero-Config Mode:** If your file contains Mermaid blocks but no slide tags, the extension automatically generates a slide for every diagram.
+- **Native VS Code Integration:** Plugs directly into your existing workflow.
+- **Zero Configuration:** Works just like the built-in Markdown preview. Simply click the presentation icon and go.
+- **Real-Time Live Sync:** Editor changes reflect instantly in the slideshow view.
+- **Full Markdown Support:** Headings, lists, blockquotes, and code blocks render perfectly.
+- **Rich Media & Diagrams:** Full support for Mermaid.js diagrams and remote images.
+- **Customizable Styles:** Control alignment, font size, and background colors to suit your brand.
+- **Theme Awareness:** Automatically syncs with your VS Code theme (Light/Dark) for a seamless look.
+- **Clean Document Structure:** Uses `<!-- slide -->` tags that remain invisible in standard Markdown previews, keeping your source files clean.
 
 ## Getting Started
 
@@ -25,62 +27,64 @@ Stop wasting time exporting to PDF or building clunky PPT files. Write your cont
 2. **Open** any Markdown (`.md`) file.
 3. **Launch the Presentation:**
    - Click the **Presentation Icon** in the editor title bar (top right).
-   - **OR** use the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and type `Markdown: Show Markdown Presentation`.
-
-## How to Create Slides
-
-Defining a slide is as easy as using a code fence. Simply wrap the content you want to present in `<!-- slide -->` comments.
-
-````markdown
-# My Project Notes
-
-This text is a private note. It stays in your editor but won't show on the slide.
-
-<!-- slide -->
-## Slide 1: Introduction
-Text placed between two tags becomes a single slide.
-<!-- slide -->
-
-More private notes here...
-
-<!-- slide -->
-## Slide 2: Architecture
-Everything here is on the second slide!
-<!-- slide -->
-````
-
-## Pro-Tip: Interleaved Presentation Notes
-
-You no longer need a separate "Presenter View" window.
-
-Write your detailed background info, reminders, or script directly in the Markdown file outside of the `<!-- slide -->` tags.
-
-You can read your notes in the editor while your audience sees the clean, rendered slides in the preview panel.
-
-## See It In Action
-
-![Markdown Presentation Tool — full feature tour](assets/demo-long.gif)
+   - **OR** open the Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`) and type `Markdown: Show Markdown Presentation`.
 
 ## Navigation & Controls
+
 
 | Action              | Input                                                            |
 | :------------------ | :--------------------------------------------------------------- |
 | **Next Slide**      | `Right Arrow`, `Down Arrow`, `PageDown`, `Space`, or Scroll Down |
 | **Previous Slide**  | `Left Arrow`, `Up Arrow`, `PageUp`, or Scroll Up                 |
-| **Internal Scroll** | `Shift` + `Scroll` (for slides taller than the screen)           |
-| **Click Nav**       | Use the interactive arrow overlays on the edges                  |
+| **Internal Scroll** | `Shift` + `Scroll` (for long slides)                             |
+| **Visual Navigation**| Interactive arrow overlays on screen edges                       |
 
-## Configuration
+## Configuration Reference
 
-Tailor the visual output in your VS Code Settings:
+Adjust these in VS Code Settings (`Cmd+,` / `Ctrl+,`) under **Markdown Presentation Tool**.
 
-- `markdownPresentation.mermaid.theme`: Choose your Mermaid diagram theme (`default`, `dark`, `forest`, or `neutral`). By default, it auto-detects based on your VS Code theme.
-- `markdownPresentation.slide.showCounter`: Show or hide the bottom-right slide counter (default: `true`).
-- `markdownPresentation.slide.showNavigationArrows`: Show or hide the on-screen prev/next arrows (default: `true`). Keyboard navigation is unaffected.
 
+| Category       | Setting                                           | Default   | Description                                           |
+| :------------- | :------------------------------------------------ | :-------- | :---------------------------------------------------- |
+| **Mermaid**    | `markdownPresentation.slide.mermaidTheme`         | `default` | `default` (auto), `dark`, `forest`, or `neutral`      |
+| **Appearance** | `markdownPresentation.slide.headingAlignment`     | `left`    | `left`, `center`, or `right`                          |
+| **Appearance** | `markdownPresentation.slide.contentAlignment`     | `left`    | `left`, `center`, or `right`                          |
+| **Appearance** | `markdownPresentation.slide.fontSize`             | `medium`  | `small` (0.85em), `medium` (1em), or `large` (1.25em) |
+| **Appearance** | `markdownPresentation.slide.backgroundColor`      | _(empty)_ | Custom hex code (e.g., `#1e1e1e`)                     |
+| **UI**         | `markdownPresentation.slide.showCounter`          | `true`    | Toggle the slide counter (bottom-right)               |
+| **UI**         | `markdownPresentation.slide.showNavigationArrows` | `true`    | Toggle the on-screen navigation arrows                |
+
+## How to Create Slides
+
+Defining a slide is simple. Separate your content using the `<!-- slide -->` comment tag.
+
+````markdown
+<!-- slide -->
+
+# My First Slide
+
+Welcome to the presentation!
+
+<!-- slide -->
+
+# Private Notes
+
+- Content outside of slide tags is not shown during the presentation.
+
+<!-- slide -->
+
+# Mermaid Diagrams Also Work Natively
+
+```mermaid
+graph LR
+    A[Markdown File] --> B[Presentation]
+```
+
+- Images from the web work too!
+
+<!-- slide -->
+````
 ## Contributing & Support
 
-- We welcome contributions! Check out our [Development Guide](docs/development.md) to get started with local setup and testing.
-- And check [Architecture Guide](docs/architecture.md) to understand the code structure and design decisions.
-
-**License:** [MIT](LICENSE)
+- **Contributions:** We welcome your help! See our [Development Guide](/docs/development.md) for local setup instructions.
+- **Codebase:** Check out the [Architecture Guide](/docs/architecture.md) to understand the project structure and design.

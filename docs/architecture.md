@@ -48,10 +48,30 @@ This mode exists so that files written for the original Mermaid-only extension c
 
 The webview is a single HTML file (`src/webview.html`) that handles both modes through the same code path:
 
-1. **Template injection** — `getWebviewContent()` reads `src/webview.html` and replaces placeholder tokens (`{{NONCE}}`, `{{THEME}}`, `{{SLIDES_JSON}}`, `{{BODY_CLASSES}}`) with runtime values.
-2. **Markdown-to-HTML** — `renderMarkdownToHtml()` is a lightweight inline parser in the webview that handles headings, paragraphs, lists (ordered/unordered), blockquotes, horizontal rules, inline formatting (bold, italic, code), fenced code blocks, and Mermaid fences.
+1. **Template injection** — `getWebviewContent()` reads `src/webview.html` and replaces placeholder tokens (`{{NONCE}}`, `{{THEME}}`, `{{SLIDES_JSON}}`, `{{BODY_CLASSES}}`, `{{CUSTOM_STYLES}}`) with runtime values.
+2. **Markdown-to-HTML** — `renderMarkdownToHtml()` is a lightweight inline parser in the webview that handles headings, paragraphs, lists (ordered/unordered), blockquotes, horizontal rules, inline formatting (bold, italic, code), fenced code blocks, Mermaid fences, and remote images.
 3. **Mermaid rendering** — Mermaid is loaded via CDN (`https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs`). After the markdown parser emits `<pre class="mermaid">` elements, `mermaid.run()` renders them to SVG.
 4. **CSP nonce** — Every webview render generates a fresh cryptographic nonce injected into the Content Security Policy header. Only scripts with the matching nonce can execute.
+
+### Settings Pipeline
+
+User-configurable settings flow through a single pipeline on every render:
+
+1. `resolveSettings()` reads all `markdownPresentation.*` configuration keys and returns a typed settings object. It also resolves derived values (e.g. the effective Mermaid theme when the user has chosen `default`).
+2. The settings object is passed to `getWebviewContent()`, which builds a `{{CUSTOM_STYLES}}` CSS block from any non-default values (heading alignment, content alignment, font size, background color).
+3. The CSS block is injected into the webview's `<style>` section via the `{{CUSTOM_STYLES}}` placeholder, overriding the base styles only where the user has deviated from defaults.
+
+This means default settings produce zero extra CSS — the base stylesheet is unchanged — and non-default settings produce minimal, targeted overrides.
+
+### Image Support
+
+The webview CSP includes `img-src https: data:`, so images with `https://` URLs render inline. `renderMarkdownToHtml()` matches standalone image lines of the form `![alt](https://...)` and emits `<img>` tags. Images are constrained to fit the slide viewport (`max-width: 100%`, `max-height: calc(100vh - 200px)`, `object-fit: contain`) — no scrolling or panning is required.
+
+**Current limitation — inline images:** Only images that occupy their own line are matched. Images embedded mid-paragraph alongside other text are not yet rendered.
+
+**Current limitation — parentheses in URLs:** The regex uses `[^)]+` to capture the URL, so URLs containing a literal `)` character (e.g. Wikipedia links like `https://en.wikipedia.org/wiki/Foo_(bar)`) will be truncated at the first `)`. Workaround: use a URL shortener or percent-encode the parentheses (`%28`, `%29`).
+
+**Pending — local image support:** Local workspace images (e.g. `![](./assets/diagram.png)`) currently render as blank. Supporting them requires: resolving paths against the markdown file's directory; rewriting each path to a webview-safe URI via `panel.webview.asWebviewUri()`; setting `localResourceRoots` on the panel; and using the runtime `panel.webview.cspSource` value in the CSP `img-src` directive. The live-update (`postSlidesUpdate`) code path also needs URI rewriting. Windows path separators and images inside code blocks (documentation examples) add further edge cases. This is a medium-complexity change (~60–80 lines) — implement as a dedicated feature after a thorough evaluation.
 
 ## Live Update Mechanism
 
@@ -64,7 +84,7 @@ When the source document changes in the editor:
 5. The webview receives the message, replaces its slide array, and re-renders the current slide (clamping the index if slides were removed).
 
 The webview is also fully re-rendered (not just updated via message) when:
-- The user changes any `markdownPresentation.*` setting (theme, counter visibility, navigation arrow visibility).
+- The user changes any `markdownPresentation.*` setting.
 - The VS Code color theme changes (which affects the auto-detected Mermaid theme).
 
 ## Key Files

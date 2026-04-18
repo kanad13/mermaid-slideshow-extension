@@ -207,12 +207,16 @@ function getNonce() {
  *   user choices (dark, forest, neutral) are returned as-is.
  * - showCounter: whether the slide counter should be visible.
  * - showNavigationArrows: whether the on-screen prev/next arrows should be visible.
+ * - headingAlignment: text-align value for h1–h6 headings ("left", "center", "right").
+ * - contentAlignment: overall text-align for slide body content ("left", "center", "right").
+ * - fontSize: base font size tier for slide content ("small", "medium", "large").
+ * - backgroundColor: CSS color string for slide background; empty string defers to VS Code theme.
  *
- * @returns {{mermaidTheme: string, showCounter: boolean, showNavigationArrows: boolean}}
+ * @returns {{mermaidTheme: string, showCounter: boolean, showNavigationArrows: boolean, headingAlignment: string, contentAlignment: string, fontSize: string, backgroundColor: string}}
  */
 function resolveSettings() {
 	const cfg = vscode.workspace.getConfiguration("markdownPresentation");
-	const themeSetting = cfg.get("mermaid.theme", "default");
+	const themeSetting = cfg.get("slide.mermaidTheme", "default");
 	const kind = vscode.window.activeColorTheme.kind;
 	const isDark = kind === vscode.ColorThemeKind.Dark || kind === vscode.ColorThemeKind.HighContrast;
 	const mermaidTheme = themeSetting === "default" ? (isDark ? "dark" : "default") : themeSetting;
@@ -220,6 +224,10 @@ function resolveSettings() {
 		mermaidTheme,
 		showCounter: cfg.get("slide.showCounter", true),
 		showNavigationArrows: cfg.get("slide.showNavigationArrows", true),
+		headingAlignment: cfg.get("slide.headingAlignment", "left"),
+		contentAlignment: cfg.get("slide.contentAlignment", "left"),
+		fontSize: cfg.get("slide.fontSize", "medium"),
+		backgroundColor: cfg.get("slide.backgroundColor", ""),
 	};
 }
 
@@ -234,7 +242,7 @@ function resolveSettings() {
  *
  * @param {string[]} slides - Array of slide strings (raw markdown)
  * @param {string} nonce - CSP nonce token
- * @param {{mermaidTheme: string, showCounter: boolean, showNavigationArrows: boolean}} settings - Resolved user settings
+ * @param {{mermaidTheme: string, showCounter: boolean, showNavigationArrows: boolean, headingAlignment: string, contentAlignment: string, fontSize: string, backgroundColor: string}} settings - Resolved user settings
  * @returns {string} Complete HTML page
  */
 function getWebviewContent(slides, nonce, settings) {
@@ -258,12 +266,17 @@ function getWebviewContent(slides, nonce, settings) {
 			background: var(--vscode-editor-background);
 		}
 		.empty { text-align: center; }
-		.empty p { font-size: 1.1em; margin: 8px 0; }
+		.empty h2 { font-size: 1.6em; margin-bottom: 12px; color: var(--vscode-editor-foreground); }
+		.empty p { font-size: 1.4em; margin: 8px 0; }
+		.empty code { font-family: 'Courier New', Courier, monospace; background: var(--vscode-textCodeBlock-background, rgba(128,128,128,0.2)); padding: 2px 6px; border-radius: 3px; }
 	</style>
 </head>
 <body>
 	<div class="empty">
-		<p>No slides found in this file. Add &lt;!-- slide --&gt; delimiters to create slides, or include Mermaid code blocks for automatic diagram slides.</p>
+		<h2>No slides found</h2>
+		<p>This file doesn't contain any presentation slides.</p>
+		<p>Add <code>&lt;!-- slide --&gt;</code> delimiters to create slides,<br>
+		or include Mermaid code blocks for automatic diagram slides.</p>
 	</div>
 </body>
 </html>`;
@@ -278,10 +291,28 @@ function getWebviewContent(slides, nonce, settings) {
 		settings.showNavigationArrows ? "" : "hide-nav",
 	].filter(Boolean).join(" ");
 
+	const fontSizeMap = /** @type {Record<string, string>} */({ small: "0.85em", medium: "1em", large: "1.25em" });
+	const customStyleRules = [];
+	if (settings.headingAlignment !== "left") {
+		customStyleRules.push(`.slide-inner h1, .slide-inner h2, .slide-inner h3,
+		.slide-inner h4, .slide-inner h5, .slide-inner h6 { text-align: ${settings.headingAlignment}; }`);
+	}
+	if (settings.contentAlignment !== "left") {
+		customStyleRules.push(`.slide-inner { text-align: ${settings.contentAlignment}; }`);
+	}
+	if (settings.fontSize !== "medium") {
+		customStyleRules.push(`.slide-inner { font-size: ${fontSizeMap[settings.fontSize] ?? "1em"}; }`);
+	}
+	if (settings.backgroundColor) {
+		customStyleRules.push(`body { background: ${settings.backgroundColor}; }`);
+	}
+	const customStyles = customStyleRules.join("\n		");
+
 	html = html.replace(/\{\{NONCE\}\}/g, nonce);
 	html = html.replace("{{THEME}}", settings.mermaidTheme);
 	html = html.replace("{{SLIDES_JSON}}", JSON.stringify(slides).replace(/</g, "\\u003c"));
 	html = html.replace("{{BODY_CLASSES}}", bodyClasses);
+	html = html.replace("{{CUSTOM_STYLES}}", customStyles);
 
 	return html;
 }
@@ -312,8 +343,11 @@ function postSlidesUpdate(panel, slides) {
 function activate(context) {
 	console.log("markdownPresentation extension activated");
 
+	/** @type {import("vscode").WebviewPanel | undefined} */
 	let currentPanel = undefined;
+	/** @type {import("vscode").TextDocument | undefined} */
 	let currentDocument = undefined;
+	/** @type {ReturnType<typeof setTimeout> | undefined} */
 	let debounceTimer = undefined;
 
 	const disposable = vscode.commands.registerCommand(
@@ -370,10 +404,11 @@ function activate(context) {
 				currentDocument &&
 				e.document.uri.toString() === currentDocument.uri.toString()
 			) {
+				const panel = currentPanel;
 				clearTimeout(debounceTimer);
 				debounceTimer = setTimeout(() => {
 					const slides = getSlides(e.document.getText());
-					postSlidesUpdate(currentPanel, slides);
+					postSlidesUpdate(panel, slides);
 				}, 300);
 			}
 		}
@@ -423,4 +458,5 @@ module.exports = {
 	splitSlides,
 	getSlides,
 	resolveSettings,
+	getWebviewContent,
 };
