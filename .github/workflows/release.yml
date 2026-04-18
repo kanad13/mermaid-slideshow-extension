@@ -1,10 +1,12 @@
-name: Release Publish
+name: Markdown Presentation Tool — Release & Publish
+# Serves: Markdown Presentation Tool (KunalPathak.markdown-presentation-tool)
+# Branch: markmaid-slideshow | Tag prefix: mpt-v{version}
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (semver without v prefix, e.g. 1.2.3)'
+        description: 'Version to release (semver without prefix, e.g. 1.2.3). Tag will be created as mpt-v{version}.'
         required: true
         type: string
 
@@ -66,7 +68,7 @@ jobs:
 
       - name: Ensure release tag does not already exist
         run: |
-          RELEASE_TAG="v${{ inputs.version }}"
+          RELEASE_TAG="mpt-v${{ inputs.version }}"
           git fetch --tags origin
           if git ls-remote --exit-code --tags origin "refs/tags/$RELEASE_TAG" >/dev/null 2>&1; then
             echo "Tag $RELEASE_TAG already exists on origin."
@@ -86,7 +88,7 @@ jobs:
 
       - name: Create Git Tag
         run: |
-          RELEASE_TAG="v${{ inputs.version }}"
+          RELEASE_TAG="mpt-v${{ inputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "$RELEASE_TAG"
@@ -95,8 +97,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ inputs.version }}
-          name: v${{ inputs.version }}
+          tag_name: mpt-v${{ inputs.version }}
+          name: "Markdown Presentation Tool v${{ inputs.version }}"
           files: '*.vsix'
           generate_release_notes: true
         env:
