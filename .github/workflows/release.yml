@@ -1,6 +1,6 @@
 name: Markdown Presentation Tool — Release & Publish
 # Serves: Markdown Presentation Tool (KunalPathak.markdown-presentation-tool)
-# Branch: markmaid-slideshow | Tag prefix: mpt-v{version}
+# Branch: main | Tag prefix: mpt-v{version}
 
 on:
   workflow_dispatch:
@@ -22,8 +22,8 @@ jobs:
     steps:
       - name: Validate branch
         run: |
-          if [[ "${{ github.ref_name }}" != "markmaid-slideshow" ]]; then
-            echo "This workflow must be run from the markmaid-slideshow branch. Got: ${{ github.ref_name }}"
+          if [[ "${{ github.ref_name }}" != "main" ]]; then
+            echo "This workflow must be run from the main branch. Got: ${{ github.ref_name }}"
             exit 1
           fi
 

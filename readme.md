@@ -8,7 +8,7 @@
 
 Stop wasting time exporting to PDF or building clunky PPT files. Write your content in Markdown and launch a beautiful, navigable slideshow with a single click.
 
-![Markdown Presentation Tool](https://raw.githubusercontent.com/kanad13/mermaid-slideshow-extension/refs/heads/markmaid-slideshow/assets/extension-demo.gif)
+![Markdown Presentation Tool](https://raw.githubusercontent.com/kanad13/markdown-presentation-tool/refs/heads/main/assets/extension-demo.gif)
 
 ## Key Features
 

@@ -6,16 +6,9 @@ Technical architecture of the Markdown Presentation Tool VS Code extension.
 
 Markdown Presentation Tool is a VS Code extension that presents markdown content as a navigable slideshow in a webview panel. Users wrap sections of their markdown file in `<!-- slide -->` delimiter pairs, and each pair's content becomes one slide with full markdown rendering — headings, paragraphs, lists, blockquotes, code blocks, and Mermaid diagrams.
 
-## Branch Strategy and History
+## Repository History
 
-This repository carries two independent VS Code extension tracks on separate branches:
-
-| Branch | Extension ID | What it does |
-| --- | --- | --- |
-| `main` | `mermaid-slideshow` | Original extension. Renders only Mermaid diagrams as a slideshow. Published and stable. |
-| `markmaid-slideshow` | `markdown-presentation-tool` | Current extension. Renders full markdown content as a navigable slideshow. This branch. |
-
-**Why two branches instead of one?** The original `mermaid-slideshow` extension on `main` only extracted Mermaid diagram blocks and ignored all other markdown content. The `markdown-presentation-tool` extension is a fundamentally different product — it renders full markdown slides with mixed content. Rather than breaking existing users of the Mermaid-only extension, the new extension was developed on a separate branch under a separate extension ID. The two branches are never merged into each other.
+This extension originated from the `mermaid-slideshow` extension. The original extension only extracted Mermaid diagram blocks and ignored all other markdown content. The `markdown-presentation-tool` extension is a fundamentally different product — it renders full markdown slides with mixed content. It was separated into its own repository to give it an independent release history, issues tracker, and CI pipeline.
 
 ## Slide Extraction Pipeline
 

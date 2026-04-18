@@ -1,6 +1,6 @@
 # Development Guide
 
-This is the single source of truth for developing, testing, and releasing on the `markmaid-slideshow` branch. For architecture details, see [architecture.md](architecture.md).
+This is the single source of truth for developing, testing, and releasing the Markdown Presentation Tool. For architecture details, see [architecture.md](architecture.md).
 
 
 ## Key Source Files
@@ -35,9 +35,8 @@ This is the single source of truth for developing, testing, and releasing on the
 ## Local Setup
 
 ```bash
-git clone https://github.com/kanad13/mermaid-slideshow-extension.git
-cd mermaid-slideshow-extension
-git checkout markmaid-slideshow
+git clone https://github.com/kanad13/markdown-presentation-tool.git
+cd markdown-presentation-tool
 npm ci
 ```
 
@@ -87,7 +86,7 @@ Stage files explicitly — avoid `git add .` after running `npm run package`, as
 ```bash
 git add src/extension.js src/webview.html   # or whichever files you changed
 git commit -m "feat: improve slide rendering for nested lists"
-git push origin markmaid-slideshow
+git push origin main
 ```
 
 
@@ -97,7 +96,7 @@ There are two GitHub Actions workflow files. They are **fully independent** — 
 
 | Workflow | File | Trigger | What it does |
 | --- | --- | --- | --- |
-| Branch CI | `.github/workflows/ci.yml` | Every push to `markmaid-slideshow` | Lint, unit tests, package, verify `.vsix` |
+| CI | `.github/workflows/ci.yml` | Every push to `main` and every PR | Lint, unit tests, package, verify `.vsix` |
 | Release Publish | `.github/workflows/release.yml` | Manual `workflow_dispatch` only | Validate version + CHANGELOG, package, create git tag, create GitHub Release, publish to Marketplace |
 
 A push **always** runs CI. A release **never** runs automatically — it requires an explicit manual trigger.
@@ -105,7 +104,7 @@ A push **always** runs CI. A release **never** runs automatically — it require
 
 ## What Happens on Every Push
 
-When you push to `markmaid-slideshow`, `.github/workflows/ci.yml` runs automatically:
+When you push to `main`, `.github/workflows/ci.yml` runs automatically:
 
 1. Checks out the code
 2. Installs dependencies with `npm ci`
@@ -163,7 +162,7 @@ Example:
 ```bash
 git add package.json package-lock.json CHANGELOG.md
 git commit -m "chore: bump version to X.Y.Z"
-git push origin markmaid-slideshow
+git push origin main
 ```
 
 Any commit message is fine. Wait for CI to pass before proceeding.
@@ -175,29 +174,29 @@ Once CI is green, run the release workflow. Pass the version number **without** 
 **Using the `gh` CLI (recommended):**
 
 ```bash
-gh workflow run release.yml --ref markmaid-slideshow -f version=X.Y.Z
+gh workflow run release.yml --ref main -f version=X.Y.Z
 ```
 
 **Using the GitHub web UI:**
 
-1. Go to **Actions** → **Release Publish**.
+1. Go to **Actions** → **Markdown Presentation Tool — Release & Publish**.
 2. Click **Run workflow**.
-3. Select the `markmaid-slideshow` branch.
-4. Enter the version (e.g. `0.2.0`) in the `version` field.
+3. Select the `main` branch.
+4. Enter the version (e.g. `1.2.1`) in the `version` field.
 5. Click **Run workflow**.
 
 ### What the release workflow does
 
-1. Validates the workflow was triggered from `markmaid-slideshow`
+1. Validates the workflow was triggered from `main`
 2. Validates the `version` input matches semver format `X.Y.Z`
 3. Validates that `package.json` version matches the input version
 4. Validates that `CHANGELOG.md` contains a `## [X.Y.Z]` entry for the version
-5. Verifies the git tag `vX.Y.Z` does not already exist on the remote
+5. Verifies the git tag `mpt-vX.Y.Z` does not already exist on the remote
 6. Installs dependencies with `npm ci`
 7. Packages the extension with `npm run package`
 8. Verifies the `.vsix` was produced
-9. Creates and pushes the `vX.Y.Z` git tag
-10. Creates a GitHub Release with the `.vsix` attached and auto-generated release notes
+9. Creates and pushes the `mpt-vX.Y.Z` git tag
+10. Creates a GitHub Release titled "Markdown Presentation Tool vX.Y.Z" with the `.vsix` attached and auto-generated release notes
 11. Publishes the extension to the VS Code Marketplace
 
 
@@ -213,18 +212,18 @@ Read the failing step in the GitHub Actions log. Common causes:
 
 ### Release workflow failed: wrong branch
 
-The release workflow only accepts `markmaid-slideshow`. If you triggered from the wrong branch:
+The release workflow only accepts `main`. If you triggered from the wrong branch:
 
 ```bash
-gh workflow run release.yml --ref markmaid-slideshow -f version=X.Y.Z
+gh workflow run release.yml --ref main -f version=X.Y.Z
 ```
 
 ### Release workflow failed: invalid version format
 
 The `version` input must be exactly `X.Y.Z` — three dot-separated integers, no `v` prefix.
 
-- Correct: `0.2.0`
-- Wrong: `v0.2.0`, `0.2`, `0.2.0-beta`
+- Correct: `1.2.1`
+- Wrong: `v1.2.1`, `1.2`, `1.2.1-beta`
 
 ### Release workflow failed: version mismatch
 
@@ -239,7 +238,7 @@ The `version` input does not match the version in `package.json`. Run `npm versi
 That version has already been released. Use a new version number. If the previous release was erroneous and you need to retag, delete the remote tag intentionally:
 
 ```bash
-git push origin --delete vX.Y.Z
+git push origin --delete mpt-vX.Y.Z
 ```
 
 Then re-run the workflow.
@@ -255,8 +254,8 @@ Expected. CI never publishes. After CI passes, run the release workflow manually
 
 ## Branch Conventions
 
-- All work happens on `markmaid-slideshow`. Do not merge into `main`.
+- All work happens on `main`.
 - Use descriptive commit messages. No special format is required for any type of commit.
 - Stage files explicitly rather than using `git add .`.
 - Let automation handle git tags, GitHub Releases, and Marketplace publishing — never create tags or publish manually.
-- Keep this file (`docs/development.md`) as the live source of truth for the development and release process. Do not duplicate operational information into `planned-changes/readme.md`.
+- Keep this file (`docs/development.md`) as the live source of truth for the development and release process.

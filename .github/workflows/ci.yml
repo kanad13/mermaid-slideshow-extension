@@ -1,8 +1,10 @@
-name: Branch CI
+name: CI
 
 on:
   push:
-    branches: [ markmaid-slideshow ]
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

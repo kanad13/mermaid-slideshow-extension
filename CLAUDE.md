@@ -1,8 +1,8 @@
 # Markdown Presentation Tool - VS Code Extension
 
-## Branch Status
+## Repository
 
-This is the `markmaid-slideshow` branch. It is building `markdown-presentation-tool` — a **new, independent VS Code extension** that is distinct from the `mermaid-slideshow` extension on `main`.
+This is the `markdown-presentation-tool` repository. All development happens on `main`.
 
 **Key files:**
 - `src/extension.js` — all extension logic
