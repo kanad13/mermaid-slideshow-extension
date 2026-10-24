@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-10-24
+
+### Changed
+
+- Upgraded the diagram renderer to Mermaid 12. Flowcharts, state, class, and ER diagrams use a new default layout, so edges and spacing look different from earlier releases
+- Loads Mermaid from an exact pinned version instead of a floating tag
+- Supports VS Code 1.105 and later (earlier releases required 1.109)
+- Shows a notice on the panel when Mermaid cannot be loaded from the network
+
+### Fixed
+
+- A file that gains its first diagram while the slideshow is open now updates the panel
+- Slides follow the order of the blocks in the file when a file mixes backtick and `:::` blocks
+- Pending live updates no longer fire after the panel closes or switches files
+- A diagram with a syntax error no longer leaves hidden elements behind
+
+### Security
+
+- Diagram text is rendered through Mermaid's default strict security level and is escaped before it enters the page
+- The page nonce comes from the operating system's random source
+- Workspace settings cannot inject script through the theme setting
+- The panel has no access to local files
+
 ## [1.2.1] - 2026-04-02
 
 ### Fixed
