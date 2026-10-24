@@ -132,14 +132,18 @@
 		const nextBtn = document.querySelector('.nav-arrow.next');
 
 		// A failed CDN load disables rendering only; navigation and the empty
-		// state keep working.
-		let mermaid = null;
-		try {
-			mermaid = (await import('{{MERMAID_URL}}')).default;
-			mermaid.initialize({ startOnLoad: false, theme });
-		} catch (error) {
-			console.error('Mermaid failed to load:', error);
-		}
+		// state keep working. Listeners are registered before this promise settles
+		// so update messages that arrive during a slow load are not lost.
+		const mermaidReady = (async () => {
+			try {
+				const { default: loaded } = await import('{{MERMAID_URL}}');
+				loaded.initialize({ startOnLoad: false, theme });
+				return loaded;
+			} catch (error) {
+				console.error('Mermaid failed to load:', error);
+				return null;
+			}
+		})();
 
 		/**
 		 * Replaces the slide area with a text-only notice. textContent is used
@@ -178,6 +182,8 @@
 				]);
 				return;
 			}
+			const mermaid = await mermaidReady;
+			if (token !== renderToken) return;
 			if (!mermaid) {
 				showNotice([
 					['Could not load Mermaid from the CDN.'],

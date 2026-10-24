@@ -172,6 +172,14 @@ function activate(context) {
 	let currentDocument = undefined;
 	let debounceTimer = undefined;
 
+	/**
+	 * Replaces the panel page with a fresh render of a document. Every full
+	 * render re-reads the theme and takes a new nonce.
+	 */
+	function renderPanel(doc) {
+		currentPanel.webview.html = getWebviewContent(extractMermaidBlocks(doc.getText()), getNonce(), resolveTheme());
+	}
+
 	const disposable = vscode.commands.registerCommand("mermaidSlideshow.showPreview", function () {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
@@ -185,14 +193,8 @@ function activate(context) {
 			return;
 		}
 
-		const diagrams = extractMermaidBlocks(doc.getText());
-		const theme = resolveTheme();
-		const nonce = getNonce();
-
 		if (currentPanel) {
 			currentPanel.reveal(vscode.ViewColumn.Beside);
-			currentDocument = doc;
-			currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
 		} else {
 			currentPanel = vscode.window.createWebviewPanel(
 				"mermaidSlideshow",
@@ -201,9 +203,6 @@ function activate(context) {
 				// No local files are loaded into the webview, so grant access to none.
 				{ enableScripts: true, localResourceRoots: [] }
 			);
-
-			currentDocument = doc;
-			currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
 
 			currentPanel.onDidDispose(
 				() => {
@@ -215,6 +214,9 @@ function activate(context) {
 				context.subscriptions
 			);
 		}
+
+		currentDocument = doc;
+		renderPanel(doc);
 	});
 
 	// Live-update preview when source file changes (debounced)
@@ -233,20 +235,14 @@ function activate(context) {
 	// Re-render webview when theme configuration changes
 	const changeConfigSubscription = vscode.workspace.onDidChangeConfiguration((e) => {
 		if (e.affectsConfiguration("mermaidSlideshow.theme") && currentPanel && currentDocument) {
-			const theme = resolveTheme();
-			const nonce = getNonce();
-			const diagrams = extractMermaidBlocks(currentDocument.getText());
-			currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+			renderPanel(currentDocument);
 		}
 	});
 
 	// Re-render when VS Code color theme changes (affects auto-detected Mermaid theme)
 	const changeColorThemeSubscription = vscode.window.onDidChangeActiveColorTheme(() => {
 		if (currentPanel && currentDocument) {
-			const theme = resolveTheme();
-			const nonce = getNonce();
-			const diagrams = extractMermaidBlocks(currentDocument.getText());
-			currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+			renderPanel(currentDocument);
 		}
 	});
 

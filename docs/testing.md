@@ -83,6 +83,11 @@ Run this check before you hand a release package to the maintainer.
 - Suites share one fake in `test/helpers/vscode-fake.js`.
 - Tests control timers with `mock.timers`, so no test waits in real time.
 
+**Tool prerequisites:**
+
+- `test/package.test.js` needs the `unzip` command, which macOS and Linux provide.
+- On Windows, run `npm test` in WSL or Git Bash with `unzip` installed.
+
 **Defect sensitivity:**
 
 - Break the behavior and confirm that each new test fails, then restore the code.
