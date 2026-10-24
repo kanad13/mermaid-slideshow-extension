@@ -146,4 +146,5 @@ The security limits that follow from loading code from a CDN are described in [d
 - [development.md](development.md) describes setup, workflow, and release.
 - [dependencies.md](dependencies.md) holds the dependency and version policy.
 - [testing.md](testing.md) maps workflows to evidence.
+- [workflows.md](workflows.md) holds the procedure for each kind of request.
 - [decisions.md](decisions.md) records ideas that are not built.
