@@ -11,8 +11,8 @@
 		"url": "https://github.com/kanad13/mermaid-slideshow-extension/issues"
 	},
 	"engines": {
-		"vscode": "^1.109.0",
-		"node": ">=18.0.0"
+		"vscode": "^1.105.0",
+		"node": ">=22.13.0"
 	},
 	"categories": [
 		"Other",
@@ -86,15 +86,18 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
-		"@types/node": "^25.2.3",
-		"@types/vscode": "^1.109.0",
-		"@vscode/vsce": "^3.7.1",
-		"eslint": "^10.0.0"
+		"@types/node": "^22.20.5",
+		"@types/vscode": "1.105.0",
+		"@vscode/vsce": "^3.9.2",
+		"eslint": "^10.12.0"
 	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/kanad13/mermaid-slideshow-extension.git"
 	},
 	"license": "MIT",
-	"pricing": "Free"
+	"pricing": "Free",
+	"overrides": {
+		"uuid": "^11.1.1"
+	}
 }
