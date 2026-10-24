@@ -1,3 +1,5 @@
+/** Tests for the panel lifecycle with a fake editor and controlled timers. */
+
 const { describe, it, beforeEach, afterEach, mock } = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");

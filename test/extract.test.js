@@ -1,3 +1,5 @@
+/** Unit tests for extractMermaidBlocks: syntaxes, ordering, and malformed input. */
+
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 

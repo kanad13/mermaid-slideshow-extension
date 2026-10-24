@@ -1,3 +1,5 @@
+/** Tests the built .vsix: file list and activation of the unpacked entry point. */
+
 const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");

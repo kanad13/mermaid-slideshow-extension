@@ -1,3 +1,5 @@
+/** Tests for the generated page text: nonce, policy, escaping, substitution, themes. */
+
 const { describe, it, before, after, mock } = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");

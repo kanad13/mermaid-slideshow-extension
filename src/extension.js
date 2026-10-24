@@ -1,3 +1,16 @@
+/**
+ * Mermaid Slideshow extension host.
+ *
+ * Why it exists: VS Code's markdown preview renders diagrams inline; this module
+ * presents each Mermaid diagram of a markdown file as one slide in a webview.
+ *
+ * Approach: diagram text is extracted with a regular expression, embedded in
+ * src/webview.html through single-pass substitution, and refreshed by posted
+ * messages while the file changes. Invariants: one panel at a time, no global
+ * state, every render uses a fresh nonce, and diagram text and settings are
+ * treated as untrusted when they enter the page.
+ */
+
 const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");

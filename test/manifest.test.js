@@ -1,3 +1,5 @@
+/** Tests that keep package metadata, CI, and source constants consistent. */
+
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
