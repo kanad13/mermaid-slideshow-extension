@@ -155,96 +155,79 @@ function activate(context) {
 	let currentDocument = undefined;
 	let debounceTimer = undefined;
 
-	const disposable = vscode.commands.registerCommand(
-		"mermaidSlideshow.showPreview",
-		function () {
-			const editor = vscode.window.activeTextEditor;
-			if (!editor) {
-				vscode.window.showErrorMessage("No active editor");
-				return;
-			}
-
-			const doc = editor.document;
-			if (doc.languageId !== "markdown") {
-				vscode.window.showErrorMessage("Not a Markdown file");
-				return;
-			}
-
-			const diagrams = extractMermaidBlocks(doc.getText());
-			const theme = resolveTheme();
-			const nonce = getNonce();
-
-			if (currentPanel) {
-				currentPanel.reveal(vscode.ViewColumn.Beside);
-				currentDocument = doc;
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
-			} else {
-				currentPanel = vscode.window.createWebviewPanel(
-					"mermaidSlideshow",
-					"Mermaid Slideshow",
-					vscode.ViewColumn.Beside,
-					{ enableScripts: true }
-				);
-
-				currentDocument = doc;
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
-
-				currentPanel.onDidDispose(
-					() => {
-						currentPanel = undefined;
-						currentDocument = undefined;
-					},
-					null,
-					context.subscriptions
-				);
-			}
+	const disposable = vscode.commands.registerCommand("mermaidSlideshow.showPreview", function () {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			vscode.window.showErrorMessage("No active editor");
+			return;
 		}
-	);
+
+		const doc = editor.document;
+		if (doc.languageId !== "markdown") {
+			vscode.window.showErrorMessage("Not a Markdown file");
+			return;
+		}
+
+		const diagrams = extractMermaidBlocks(doc.getText());
+		const theme = resolveTheme();
+		const nonce = getNonce();
+
+		if (currentPanel) {
+			currentPanel.reveal(vscode.ViewColumn.Beside);
+			currentDocument = doc;
+			currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+		} else {
+			currentPanel = vscode.window.createWebviewPanel(
+				"mermaidSlideshow",
+				"Mermaid Slideshow",
+				vscode.ViewColumn.Beside,
+				{ enableScripts: true }
+			);
+
+			currentDocument = doc;
+			currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
+
+			currentPanel.onDidDispose(
+				() => {
+					currentPanel = undefined;
+					currentDocument = undefined;
+				},
+				null,
+				context.subscriptions
+			);
+		}
+	});
 
 	// Live-update preview when source file changes (debounced)
-	const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument(
-		(e) => {
-			if (
-				currentPanel &&
-				currentDocument &&
-				e.document.uri.toString() === currentDocument.uri.toString()
-			) {
-				clearTimeout(debounceTimer);
-				debounceTimer = setTimeout(() => {
-					const diagrams = extractMermaidBlocks(e.document.getText());
-					postDiagramUpdate(currentPanel, diagrams);
-				}, 300);
-			}
+	const changeDocumentSubscription = vscode.workspace.onDidChangeTextDocument((e) => {
+		if (currentPanel && currentDocument && e.document.uri.toString() === currentDocument.uri.toString()) {
+			clearTimeout(debounceTimer);
+			debounceTimer = setTimeout(() => {
+				const diagrams = extractMermaidBlocks(e.document.getText());
+				postDiagramUpdate(currentPanel, diagrams);
+			}, 300);
 		}
-	);
+	});
 
 	// Re-render webview when theme configuration changes
-	const changeConfigSubscription = vscode.workspace.onDidChangeConfiguration(
-		(e) => {
-			if (
-				e.affectsConfiguration("mermaidSlideshow.theme") &&
-				currentPanel &&
-				currentDocument
-			) {
-				const theme = resolveTheme();
-				const nonce = getNonce();
-				const diagrams = extractMermaidBlocks(currentDocument.getText());
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
-			}
+	const changeConfigSubscription = vscode.workspace.onDidChangeConfiguration((e) => {
+		if (e.affectsConfiguration("mermaidSlideshow.theme") && currentPanel && currentDocument) {
+			const theme = resolveTheme();
+			const nonce = getNonce();
+			const diagrams = extractMermaidBlocks(currentDocument.getText());
+			currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
 		}
-	);
+	});
 
 	// Re-render when VS Code color theme changes (affects auto-detected Mermaid theme)
-	const changeColorThemeSubscription = vscode.window.onDidChangeActiveColorTheme(
-		() => {
-			if (currentPanel && currentDocument) {
-				const theme = resolveTheme();
-				const nonce = getNonce();
-				const diagrams = extractMermaidBlocks(currentDocument.getText());
-				currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
-			}
+	const changeColorThemeSubscription = vscode.window.onDidChangeActiveColorTheme(() => {
+		if (currentPanel && currentDocument) {
+			const theme = resolveTheme();
+			const nonce = getNonce();
+			const diagrams = extractMermaidBlocks(currentDocument.getText());
+			currentPanel.webview.html = getWebviewContent(diagrams, nonce, theme);
 		}
-	);
+	});
 
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(changeDocumentSubscription);
@@ -257,5 +240,5 @@ function deactivate() {}
 module.exports = {
 	activate,
 	deactivate,
-	extractMermaidBlocks,
+	extractMermaidBlocks
 };

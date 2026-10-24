@@ -9,20 +9,25 @@ Module._resolveFilename = function (request, ...args) {
 	return originalResolve.call(this, request, ...args);
 };
 require.cache["vscode"] = {
-	id: "vscode", filename: "vscode", loaded: true,
+	id: "vscode",
+	filename: "vscode",
+	loaded: true,
 	exports: {
-		workspace: { getConfiguration: () => ({ get: () => "default" }), onDidChangeTextDocument: () => ({ dispose() {} }), onDidChangeConfiguration: () => ({ dispose() {} }) },
+		workspace: {
+			getConfiguration: () => ({ get: () => "default" }),
+			onDidChangeTextDocument: () => ({ dispose() {} }),
+			onDidChangeConfiguration: () => ({ dispose() {} })
+		},
 		window: { activeColorTheme: { kind: 1 }, onDidChangeActiveColorTheme: () => ({ dispose() {} }) },
 		commands: { registerCommand: () => ({ dispose() {} }) },
 		ColorThemeKind: { Light: 1, Dark: 2, HighContrast: 3 },
-		ViewColumn: { Beside: 2 },
+		ViewColumn: { Beside: 2 }
 	}
 };
 
 const { extractMermaidBlocks } = require("../src/extension");
 
 describe("extractMermaidBlocks", () => {
-
 	it("extracts a single backtick-fenced mermaid block", () => {
 		const input = "# Title\n\n```mermaid\ngraph TD\n  A --> B\n```\n";
 		const result = extractMermaidBlocks(input);
@@ -31,7 +36,8 @@ describe("extractMermaidBlocks", () => {
 	});
 
 	it("extracts multiple backtick-fenced blocks", () => {
-		const input = "```mermaid\ngraph TD\n  A --> B\n```\n\nSome text\n\n```mermaid\nsequenceDiagram\n  Alice->>Bob: Hi\n```\n";
+		const input =
+			"```mermaid\ngraph TD\n  A --> B\n```\n\nSome text\n\n```mermaid\nsequenceDiagram\n  Alice->>Bob: Hi\n```\n";
 		const result = extractMermaidBlocks(input);
 		assert.equal(result.length, 2);
 		assert.match(result[0], /graph TD/);

@@ -26,13 +26,13 @@ One active webview panel per session, reused across files. This minimizes resour
 
 ## Key Functions
 
-| Function | Purpose |
-|---|---|
-| `extractMermaidBlocks(rawText)` | Regex extraction of Mermaid blocks from raw markdown (both ``` and ::: syntax) |
+| Function                                    | Purpose                                                                                                             |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `extractMermaidBlocks(rawText)`             | Regex extraction of Mermaid blocks from raw markdown (both ``` and ::: syntax)                                      |
 | `getWebviewContent(diagrams, nonce, theme)` | Generates complete slideshow HTML with CSS, navigation JS, and Mermaid CDN. Theme passed to `mermaid.initialize()`. |
-| `postDiagramUpdate(panel, diagrams)` | Sends updated diagrams to webview via `postMessage` for live updates |
-| `getNonce()` | Generates random 32-char alphanumeric token for CSP |
-| `activate(context)` | Registers command, manages panel lifecycle, sets up file change and config change listeners |
+| `postDiagramUpdate(panel, diagrams)`        | Sends updated diagrams to webview via `postMessage` for live updates                                                |
+| `getNonce()`                                | Generates random 32-char alphanumeric token for CSP                                                                 |
+| `activate(context)`                         | Registers command, manages panel lifecycle, sets up file change and config change listeners                         |
 
 ## Live Updates via postMessage
 
@@ -50,6 +50,7 @@ Markdown files may contain malicious content. Defense layers:
 ## State Management
 
 Closure-based inside `activate()`:
+
 - `currentPanel` - the active webview (or `undefined`)
 - `currentDocument` - the document being previewed
 

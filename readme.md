@@ -30,10 +30,10 @@ VS Code's built-in markdown preview renders diagrams inline alongside text - sma
 1. Open any markdown file containing Mermaid diagram blocks
 2. Click the presentation icon in the editor title bar (or use Command Palette: `Mermaid: Show Mermaid Slideshow`)
 3. Navigate slides with:
-   - Left/Right arrow keys
-   - Up/Down arrow keys
-   - Mouse scroll wheel
-   - Click the `‹` `›` navigation arrows
+    - Left/Right arrow keys
+    - Up/Down arrow keys
+    - Mouse scroll wheel
+    - Click the `‹` `›` navigation arrows
 
 The slide counter in the bottom-right shows your position (e.g., "2 / 5").
 
@@ -41,8 +41,8 @@ The slide counter in the bottom-right shows your position (e.g., "2 / 5").
 
 Open VS Code Settings (`Cmd+,` on macOS, `Ctrl+,` on Windows/Linux) and search for **"Mermaid Slideshow"**.
 
-| Setting | Options | Default | Description |
-|---|---|---|---|
+| Setting                  | Options                                | Default   | Description                       |
+| ------------------------ | -------------------------------------- | --------- | --------------------------------- |
 | `mermaidSlideshow.theme` | `default`, `dark`, `forest`, `neutral` | `default` | Color theme for rendered diagrams |
 
 **Themes:**
@@ -70,7 +70,7 @@ Azure DevOps style:
 ```markdown
 ::: mermaid
 graph TD
-    A --> B
+A --> B
 :::
 ```
 

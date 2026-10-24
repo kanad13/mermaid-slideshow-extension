@@ -24,10 +24,10 @@ module.exports = [
 		},
 		rules: {
 			...js.configs.recommended.rules,
-			"indent": ["error", "tab"],
+			indent: ["error", "tab"],
 			"linebreak-style": ["error", "unix"],
-			"quotes": ["error", "double"],
-			"semi": ["error", "always"],
+			quotes: ["error", "double", { avoidEscape: true }],
+			semi: ["error", "always"],
 			"no-unused-vars": ["warn"],
 			"no-console": "off"
 		}

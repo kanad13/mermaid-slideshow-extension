@@ -14,8 +14,12 @@ node_modules/
 jsconfig.json
 eslint.config.js
 CLAUDE.md
+AGENTS.md
 WORKPLAN.md
 next.md
 assets/present.gif
 assets/simple-start.gif
 assets/test-images
+.prettierrc
+.prettierignore
+scripts/

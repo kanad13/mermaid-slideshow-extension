@@ -26,7 +26,7 @@ This extension presents Mermaid diagrams from markdown files as a focused, full-
 
 ## Git Commits
 
-Concise, imperative mood. Describe *what changed*. Commit at meaningful intervals.
+Concise, imperative mood. Describe _what changed_. Commit at meaningful intervals.
 
 ## Multi-File Change Protocol
 

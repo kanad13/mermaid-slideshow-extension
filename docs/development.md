@@ -25,9 +25,9 @@ You'll need authentication for publishing (not required for local development).
 1. Create a Personal Access Token at https://dev.azure.com/<org>/\_usersSettings/tokens
 2. Required scope: `Marketplace > Manage`
 3. Authenticate:
-   ```bash
-   vsce login KunalPathak
-   ```
+    ```bash
+    vsce login KunalPathak
+    ```
 4. Verify: `vsce ls-publishers`
 
 **GitHub Authentication (gh):**
@@ -86,41 +86,40 @@ git checkout -b feat/your-feature-name
 
 1. **Edit Code:** Modify files (typically `src/extension.js`)
 2. **Code Style Requirements:**
-   - Tab indentation (enforced by ESLint)
-   - Use `const`/`let` only (no `var`)
-   - Keep functions simple with clear JSDoc comments
-   - No console logs in production code (unless explicitly for debugging)
+    - Tab indentation (enforced by ESLint)
+    - Use `const`/`let` only (no `var`)
+    - Keep functions simple with clear JSDoc comments
+    - No console logs in production code (unless explicitly for debugging)
 
 3. **JSDoc Standards:** All exported functions must document:
-   - Purpose and behavior
-   - Parameters with types
-   - Return values
-   - Side effects (state changes, file I/O, etc.)
+    - Purpose and behavior
+    - Parameters with types
+    - Return values
+    - Side effects (state changes, file I/O, etc.)
 
-   **Example:**
+    **Example:**
 
-   ```javascript
-   /**
-    * Generates a cryptographic nonce for Content Security Policy.
-    * Used to prevent XSS attacks by allowing only trusted scripts to execute.
-    * @returns {string} A random 32-character hexadecimal nonce
-    */
-   function getNonce() {
-   	let text = "";
-   	const possible =
-   		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-   	for (let i = 0; i < 32; i++) {
-   		text += possible.charAt(Math.floor(Math.random() * possible.length));
-   	}
-   	return text;
-   }
-   ```
+    ```javascript
+    /**
+     * Generates a cryptographic nonce for Content Security Policy.
+     * Used to prevent XSS attacks by allowing only trusted scripts to execute.
+     * @returns {string} A random 32-character hexadecimal nonce
+     */
+    function getNonce() {
+    	let text = "";
+    	const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    	for (let i = 0; i < 32; i++) {
+    		text += possible.charAt(Math.floor(Math.random() * possible.length));
+    	}
+    	return text;
+    }
+    ```
 
 4. **Dependencies:** Avoid adding new NPM dependencies—keep the extension lightweight. No runtime dependencies required (Mermaid loads via CDN). If absolutely necessary:
-   - Justify the need
-   - Check bundle size: `npm run package` and review `dist/`
-   - Consider CDN alternatives
-   - See [architecture.md](architecture.md) for security considerations
+    - Justify the need
+    - Check bundle size: `npm run package` and review `dist/`
+    - Consider CDN alternatives
+    - See [architecture.md](architecture.md) for security considerations
 
 ### Step 3: Test Locally
 
