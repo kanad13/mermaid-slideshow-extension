@@ -1,6 +1,16 @@
 const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
+
+/**
+ * Exact Mermaid version loaded from the CDN. Floating tags would let an
+ * upstream release change rendering or security behavior without a review.
+ */
+const MERMAID_VERSION = "12.1.0";
+
+/** Mermaid themes the settings UI offers; anything else is rejected. */
+const MERMAID_THEMES = ["default", "dark", "forest", "neutral"];
 
 /**
  * Extracts Mermaid diagram code blocks from raw markdown text.
@@ -17,20 +27,11 @@ const path = require("path");
 function extractMermaidBlocks(rawText) {
 	const blocks = [];
 
-	// Backtick style: ```mermaid ... ```
-	const backtickRegex = /```mermaid\s*\n([\s\S]*?)```/g;
+	// One alternation keeps slides in document order across both syntaxes.
+	const blockRegex = /```mermaid\s*\n([\s\S]*?)```|:::\s*mermaid\s*\n([\s\S]*?):::/g;
 	let match;
-	while ((match = backtickRegex.exec(rawText)) !== null) {
-		const code = match[1].trim();
-		if (code) {
-			blocks.push(code);
-		}
-	}
-
-	// Azure DevOps style: ::: mermaid ... :::
-	const colonRegex = /:::\s*mermaid\s*\n([\s\S]*?):::/g;
-	while ((match = colonRegex.exec(rawText)) !== null) {
-		const code = match[1].trim();
+	while ((match = blockRegex.exec(rawText)) !== null) {
+		const code = (match[1] !== undefined ? match[1] : match[2]).trim();
 		if (code) {
 			blocks.push(code);
 		}
@@ -42,15 +43,13 @@ function extractMermaidBlocks(rawText) {
 /**
  * Generates a random nonce for Content Security Policy.
  *
- * @returns {string} Random 32-character alphanumeric string
+ * Uses the operating system's random source because a predictable nonce
+ * would let injected markup satisfy the policy.
+ *
+ * @returns {string} Random 32-character hexadecimal string
  */
 function getNonce() {
-	let text = "";
-	const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-	for (let i = 0; i < 32; i++) {
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-	}
-	return text;
+	return crypto.randomBytes(16).toString("hex");
 }
 
 /**
@@ -64,19 +63,51 @@ function getNonce() {
  */
 function resolveTheme() {
 	const setting = vscode.workspace.getConfiguration("mermaidSlideshow").get("theme", "default");
-	if (setting !== "default") {
+	// Workspace settings come from the repository being opened, so the value is
+	// untrusted. It is written into a script, hence the allowlist.
+	if (MERMAID_THEMES.includes(setting) && setting !== "default") {
 		return setting;
 	}
+	return resolveAutoTheme();
+}
+
+/**
+ * Maps the VS Code color theme kind to a Mermaid theme.
+ *
+ * @returns {string} "dark" for dark and high-contrast themes, otherwise "default"
+ */
+function resolveAutoTheme() {
 	const kind = vscode.window.activeColorTheme.kind;
 	const isDark = kind === vscode.ColorThemeKind.Dark || kind === vscode.ColorThemeKind.HighContrast;
 	return isDark ? "dark" : "default";
 }
 
 /**
+ * Serializes a value as JSON that is safe inside an inline script element.
+ *
+ * Diagram text is attacker-controlled; a literal "</script>" or an HTML
+ * comment opener inside it would otherwise end the script element early.
+ * U+2028/U+2029 are escaped for engines that treat them as line terminators.
+ *
+ * @param {unknown} value - JSON-serializable value
+ * @returns {string} JSON text with "<", ">", "&", U+2028 and U+2029 escaped
+ */
+function toScriptJson(value) {
+	return JSON.stringify(value)
+		.replace(/</g, "\\u003c")
+		.replace(/>/g, "\\u003e")
+		.replace(/&/g, "\\u0026")
+		.replace(/\u2028/g, "\\u2028")
+		.replace(/\u2029/g, "\\u2029");
+}
+
+/**
  * Generates the slideshow webview HTML from a template file.
  *
- * Reads src/webview.html and replaces placeholder tokens with runtime values.
- * Returns an empty-state page when no diagrams are found.
+ * Reads src/webview.html and replaces placeholder tokens with runtime values
+ * in a single pass, so substituted text is never scanned for further
+ * placeholders. The template also renders the empty state, which keeps the
+ * live-update listener present when a file gains its first diagram.
  *
  * @param {string[]} diagrams - Array of Mermaid diagram code strings
  * @param {string} nonce - CSP nonce token
@@ -84,47 +115,20 @@ function resolveTheme() {
  * @returns {string} Complete HTML page
  */
 function getWebviewContent(diagrams, nonce, theme) {
-	if (diagrams.length === 0) {
-		return `<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">
-	<title>Mermaid Slideshow</title>
-	<style>
-		body {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			height: 100vh;
-			margin: 0;
-			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-			color: var(--vscode-descriptionForeground);
-			background: var(--vscode-editor-background);
-		}
-		.empty { text-align: center; }
-		.empty p { font-size: 1.1em; margin: 8px 0; }
-	</style>
-</head>
-<body>
-	<div class="empty">
-		<p>No Mermaid diagrams found in this file.</p>
-		<p style="font-size: 0.85em;">Add a \`\`\`mermaid code block to get started.</p>
-	</div>
-</body>
-</html>`;
-	}
-
 	const templatePath = path.join(__dirname, "webview.html");
-	let html = fs.readFileSync(templatePath, "utf8");
+	const template = fs.readFileSync(templatePath, "utf8");
 
-	html = html.replace(/\{\{NONCE\}\}/g, nonce);
-	html = html.replace("{{THEME}}", theme);
-	html = html.replace("{{DIAGRAMS_JSON}}", JSON.stringify(diagrams));
-	html = html.replace("{{SINGLE_SLIDE_CLASS}}", diagrams.length === 1 ? "single-slide" : "");
+	const values = {
+		NONCE: nonce,
+		THEME: MERMAID_THEMES.includes(theme) ? theme : "default",
+		MERMAID_URL: `https://cdn.jsdelivr.net/npm/mermaid@${MERMAID_VERSION}/dist/mermaid.esm.min.mjs`,
+		DIAGRAMS_JSON: toScriptJson(diagrams),
+		SINGLE_SLIDE_CLASS: diagrams.length === 1 ? "single-slide" : ""
+	};
 
-	return html;
+	return template.replace(/\{\{([A-Z_]+)\}\}/g, (token, key) =>
+		Object.prototype.hasOwnProperty.call(values, key) ? values[key] : token
+	);
 }
 
 /**
@@ -181,7 +185,8 @@ function activate(context) {
 				"mermaidSlideshow",
 				"Mermaid Slideshow",
 				vscode.ViewColumn.Beside,
-				{ enableScripts: true }
+				// No local files are loaded into the webview, so grant access to none.
+				{ enableScripts: true, localResourceRoots: [] }
 			);
 
 			currentDocument = doc;
@@ -189,6 +194,7 @@ function activate(context) {
 
 			currentPanel.onDidDispose(
 				() => {
+					clearTimeout(debounceTimer);
 					currentPanel = undefined;
 					currentDocument = undefined;
 				},
@@ -203,8 +209,10 @@ function activate(context) {
 		if (currentPanel && currentDocument && e.document.uri.toString() === currentDocument.uri.toString()) {
 			clearTimeout(debounceTimer);
 			debounceTimer = setTimeout(() => {
-				const diagrams = extractMermaidBlocks(e.document.getText());
-				postDiagramUpdate(currentPanel, diagrams);
+				// The panel may have been closed or pointed at another file during the delay.
+				if (currentPanel && currentDocument && currentDocument.uri.toString() === e.document.uri.toString()) {
+					postDiagramUpdate(currentPanel, extractMermaidBlocks(e.document.getText()));
+				}
 			}, 300);
 		}
 	});
@@ -229,16 +237,24 @@ function activate(context) {
 		}
 	});
 
+	context.subscriptions.push({ dispose: () => clearTimeout(debounceTimer) });
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(changeDocumentSubscription);
 	context.subscriptions.push(changeConfigSubscription);
 	context.subscriptions.push(changeColorThemeSubscription);
 }
 
+/**
+ * Deactivation hook. Cleanup runs through context.subscriptions.
+ */
 function deactivate() {}
 
 module.exports = {
 	activate,
 	deactivate,
-	extractMermaidBlocks
+	extractMermaidBlocks,
+	getNonce,
+	getWebviewContent,
+	resolveTheme,
+	MERMAID_VERSION
 };
