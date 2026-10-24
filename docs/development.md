@@ -133,4 +133,5 @@ Release only from `main`, after the feature branches are merged and CI passes. E
 - [ ] The editor smoke check passed on the built `.vsix`.
 - [ ] `npm audit --omit=dev` reports no findings.
 - [ ] Manifest, lockfile, and changelog agree on the version.
+- [ ] The icon is square and between 256 and 1024 pixels wide, which `vsce publish` enforces.
 - [ ] CI is green on `main`.
