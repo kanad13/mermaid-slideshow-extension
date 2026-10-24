@@ -111,6 +111,7 @@ Running the command on another markdown file reuses the same panel.
 - [architecture.md](docs/architecture.md) explains the design.
 - [dependencies.md](docs/dependencies.md) holds the dependency policy.
 - [testing.md](docs/testing.md) maps workflows to tests.
+- [workflows.md](docs/workflows.md) maps each kind of request to its steps and stopping point.
 - [decisions.md](docs/decisions.md) records ideas that are not built.
 - [CHANGELOG.md](CHANGELOG.md) lists the version history.
 

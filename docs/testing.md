@@ -46,6 +46,7 @@ node scripts/webview-harness.js 8731 # browser harness
 | Diagram with a syntax error          | One invalid diagram among valid ones                 | A failure notice for that slide, other slides unaffected, no leftover DOM                      | Manual harness check, `test/fixtures/hostile.md`         |
 | CDN unreachable                      | The Mermaid import fails                             | A notice appears, navigation works                                                             | Manual harness check with `?break=1`                     |
 | Empty file gains a diagram           | Open a file without diagrams, add a diagram          | The empty message appears, then the slide appears                                              | Manual harness check using a posted update message       |
+| Documents agree with each other      | Run `npm test`                                       | Links and heading anchors resolve, and the task routing table matches `docs/workflows.md`      | `test/docs.test.js`                                      |
 | Package contents                     | Build the `.vsix`                                    | Only runtime files ship, and the unpacked entry point activates                                | `test/package.test.js`                                   |
 | Release metadata                     | Prepare a release                                    | Versions agree across manifest, lockfile, and changelog; the engine floor matches the type pin | `test/manifest.test.js`                                  |
 
