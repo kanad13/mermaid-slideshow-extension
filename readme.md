@@ -101,6 +101,7 @@ Running the command on another markdown file reuses the same panel.
 - The page's Content Security Policy (a browser rule that limits what the page may load and run) lets scripts run only with a random one-time token called a nonce, and diagram text is escaped before it enters the page.
 - Mermaid runs at its default `strict` security level, which sanitizes labels and disables click handlers.
 - The panel has no access to local files.
+- The extension runs in Restricted Mode, because no setting or file content can run code outside the sandboxed panel.
 
 [architecture.md](docs/architecture.md) describes the security model and [dependencies.md](docs/dependencies.md) states its limits.
 

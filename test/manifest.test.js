@@ -34,6 +34,10 @@ describe("manifest and release metadata", () => {
 		);
 	});
 
+	it("declares support for untrusted workspaces because no setting or file can run code", () => {
+		assert.deepEqual(pkg.capabilities.untrustedWorkspaces, { supported: true });
+	});
+
 	it("has no runtime dependencies", () => {
 		assert.equal(pkg.dependencies, undefined);
 	});

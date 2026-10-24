@@ -8,8 +8,11 @@ All notable changes to this project will be documented in this file.
 
 - Upgraded the diagram renderer to Mermaid 12. Flowcharts, state, class, and ER diagrams use a new default layout, so edges and spacing look different from earlier releases
 - Loads Mermaid from an exact pinned version instead of a floating tag
-- Supports VS Code 1.105 and later (earlier releases required 1.109)
 - Shows a notice on the panel when Mermaid cannot be loaded from the network
+
+### Added
+
+- Runs in VS Code's Restricted Mode, so the slideshow works in folders you have not trusted
 
 ### Fixed
 

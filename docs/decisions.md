@@ -11,44 +11,6 @@ This log is context. It is not a backlog, and nothing in it is scheduled. Each e
 | Why not now | What it costs compared with what it returns today         |
 | Reopen when | The condition that would change the verdict               |
 
-## Entries awaiting a maintainer decision
-
-### Declare Workspace Trust support
-
-**Verdict:** scoped pursue
-
-**What it is:**
-
-- VS Code opens unfamiliar folders in Restricted Mode. An extension that declares no support for it is disabled there.
-- A `capabilities.untrustedWorkspaces` entry in `package.json` would let the slideshow run in Restricted Mode.
-
-**Why not now:**
-
-- The change widens where the extension runs, which changes the supported audience.
-- The code review found that the extension is safe to run in untrusted folders: the theme setting is allowlisted, diagram text is escaped, and Mermaid runs at its default security level. A real-editor check of Restricted Mode has not been done.
-
-**Reopen when:**
-
-- The maintainer agrees to widen the audience and a Restricted Mode check in a real editor passes.
-
-### Mermaid major line
-
-**Verdict:** scoped pursue (applied)
-
-**What it is:**
-
-- The extension loads the newest qualifying Mermaid release, which belongs to a new major line.
-- That line changes the default diagram layout and edge routing, which users can see.
-
-**Why it is listed:**
-
-- The dependency policy selects the newest major line that still receives fixes, so the code follows it.
-- A visible change in diagram appearance needs the maintainer's approval.
-
-**Reopen when:**
-
-- The maintainer prefers the previous look. Setting `MERMAID_VERSION` back to the last release of the previous line restores it, and the browser harness compares both with `&mermaid=x.y.z`.
-
 ## Deferred ideas
 
 ### Keep the slide position across full re-renders
@@ -171,22 +133,6 @@ This log is context. It is not a backlog, and nothing in it is scheduled. Each e
 **Reopen when:**
 
 - The real-editor check becomes part of the release routine.
-
-### Newer GitHub Action versions
-
-**Verdict:** defer
-
-**What it is:**
-
-- The workflows use older major versions of the checkout, Node setup, and release actions.
-
-**Why not now:**
-
-- A new major version cannot be tested before a push, and the current ones work.
-
-**Reopen when:**
-
-- GitHub announces the end of support for the runtime of an action in use, or at the next quarterly dependency review.
 
 ## Rejected ideas
 

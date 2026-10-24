@@ -86,6 +86,7 @@ Markdown files can come from untrusted sources, and workspace settings travel wi
 | Mermaid default security level | The page never sets `securityLevel`; Mermaid sanitizes labels and disables click handlers                           |
 | Render API                     | `mermaid.render()` returns SVG, and diagram text never passes through `innerHTML`; notices use `textContent`        |
 | Webview resource access        | The panel grants no local resource roots because the page loads no local files                                      |
+| Untrusted workspaces           | `package.json` declares support, because the theme allowlist and the escaping make a hostile folder harmless        |
 | Webview sandbox                | VS Code isolates the webview from the filesystem and from extension internals                                       |
 
 The security limits that follow from loading code from a CDN are described in [dependencies.md](dependencies.md).

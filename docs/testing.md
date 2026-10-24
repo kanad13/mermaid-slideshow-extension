@@ -74,7 +74,8 @@ Run this check before you hand a release package to the maintainer.
 3. Step through the slides and edit a diagram to watch the live update.
 4. Switch the editor between a light and a dark theme.
 5. Change `mermaidSlideshow.theme` in settings.
-6. Close and reopen the panel.
+6. Open a folder in Restricted Mode (untrusted) and confirm that the command still works.
+7. Close and reopen the panel.
 
 ## Test design rules
 
