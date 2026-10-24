@@ -68,7 +68,7 @@ Additional rules by group:
 **Editor releases:**
 
 - Test on the current stable release. Insiders builds are not a target.
-- The engine floor is the newest editor release that is at least 12 months old.
+- The maintainer sets the engine floor. The quarterly review proposes the newest editor release that is at least 12 months old as the default.
 - Move the floor and the `@types/vscode` pin together at each quarterly review.
 
 **Editor forks:**
