@@ -13,7 +13,6 @@ test/
 node_modules/
 jsconfig.json
 eslint.config.js
-CLAUDE.md
 AGENTS.md
 WORKPLAN.md
 next.md
