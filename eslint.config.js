@@ -19,15 +19,16 @@ module.exports = [
 				module: "writable",
 				require: "readonly",
 				setTimeout: "readonly",
-				clearTimeout: "readonly"
+				clearTimeout: "readonly",
+				URL: "readonly"
 			}
 		},
 		rules: {
 			...js.configs.recommended.rules,
-			"indent": ["error", "tab"],
+			indent: ["error", "tab"],
 			"linebreak-style": ["error", "unix"],
-			"quotes": ["error", "double"],
-			"semi": ["error", "always"],
+			quotes: ["error", "double", { avoidEscape: true }],
+			semi: ["error", "always"],
 			"no-unused-vars": ["warn"],
 			"no-console": "off"
 		}

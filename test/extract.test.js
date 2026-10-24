@@ -1,28 +1,14 @@
+/** Unit tests for extractMermaidBlocks: syntaxes, ordering, and malformed input. */
+
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 
-// Minimal vscode stub - extension.js requires vscode at module level
-const Module = require("node:module");
-const originalResolve = Module._resolveFilename;
-Module._resolveFilename = function (request, ...args) {
-	if (request === "vscode") return "vscode";
-	return originalResolve.call(this, request, ...args);
-};
-require.cache["vscode"] = {
-	id: "vscode", filename: "vscode", loaded: true,
-	exports: {
-		workspace: { getConfiguration: () => ({ get: () => "default" }), onDidChangeTextDocument: () => ({ dispose() {} }), onDidChangeConfiguration: () => ({ dispose() {} }) },
-		window: { activeColorTheme: { kind: 1 }, onDidChangeActiveColorTheme: () => ({ dispose() {} }) },
-		commands: { registerCommand: () => ({ dispose() {} }) },
-		ColorThemeKind: { Light: 1, Dark: 2, HighContrast: 3 },
-		ViewColumn: { Beside: 2 },
-	}
-};
+const { installVscodeFake } = require("./helpers/vscode-fake");
 
+installVscodeFake();
 const { extractMermaidBlocks } = require("../src/extension");
 
 describe("extractMermaidBlocks", () => {
-
 	it("extracts a single backtick-fenced mermaid block", () => {
 		const input = "# Title\n\n```mermaid\ngraph TD\n  A --> B\n```\n";
 		const result = extractMermaidBlocks(input);
@@ -31,7 +17,8 @@ describe("extractMermaidBlocks", () => {
 	});
 
 	it("extracts multiple backtick-fenced blocks", () => {
-		const input = "```mermaid\ngraph TD\n  A --> B\n```\n\nSome text\n\n```mermaid\nsequenceDiagram\n  Alice->>Bob: Hi\n```\n";
+		const input =
+			"```mermaid\ngraph TD\n  A --> B\n```\n\nSome text\n\n```mermaid\nsequenceDiagram\n  Alice->>Bob: Hi\n```\n";
 		const result = extractMermaidBlocks(input);
 		assert.equal(result.length, 2);
 		assert.match(result[0], /graph TD/);
@@ -88,5 +75,26 @@ describe("extractMermaidBlocks", () => {
 		const result = extractMermaidBlocks(input);
 		assert.equal(result.length, 1);
 		assert.match(result[0], /graph LR/);
+	});
+
+	it("keeps slides in document order when syntaxes are mixed", () => {
+		const input =
+			"::: mermaid\ngraph LR\n  first --> a\n:::\n\n```mermaid\ngraph TD\n  second --> b\n```\n\n::: mermaid\ngraph LR\n  third --> c\n:::\n";
+		const result = extractMermaidBlocks(input);
+		assert.equal(result.length, 3);
+		assert.match(result[0], /first/);
+		assert.match(result[1], /second/);
+		assert.match(result[2], /third/);
+	});
+
+	it("handles CRLF line endings", () => {
+		const input = "```mermaid\r\ngraph TD\r\n  A --> B\r\n```\r\n";
+		const result = extractMermaidBlocks(input);
+		assert.equal(result.length, 1);
+		assert.match(result[0], /^graph TD/);
+	});
+
+	it("does not treat a mermaid-prefixed language name as mermaid", () => {
+		assert.deepEqual(extractMermaidBlocks("```mermaidjs\ngraph TD\n```\n"), []);
 	});
 });

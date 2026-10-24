@@ -101,49 +101,113 @@
 		.single-slide .slide-counter {
 			display: none;
 		}
+
+		.notice {
+			text-align: center;
+			color: var(--vscode-descriptionForeground);
+		}
+
+		.notice p { font-size: 1.1em; margin: 8px 0; }
+		.notice .hint { font-size: 0.85em; }
+		.notice.error { color: var(--vscode-errorForeground); }
 	</style>
 </head>
 <body class="{{SINGLE_SLIDE_CLASS}}">
 	<button class="nav-arrow prev" aria-label="Previous slide">&#8249;</button>
 	<button class="nav-arrow next" aria-label="Next slide">&#8250;</button>
 	<div class="slide-container">
-		<div class="slide-content">
-			<pre class="mermaid"></pre>
-		</div>
+		<div class="slide-content"></div>
 	</div>
 	<div class="slide-counter"></div>
 
 	<script type="module" nonce="{{NONCE}}">
-		import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-
 		const diagrams = {{DIAGRAMS_JSON}};
+		const theme = '{{THEME}}';
 		let currentIndex = 0;
-
-		mermaid.initialize({
-			startOnLoad: false,
-			theme: '{{THEME}}',
-			securityLevel: 'loose'
-		});
+		let renderToken = 0;
 
 		const container = document.querySelector('.slide-content');
 		const counter = document.querySelector('.slide-counter');
 		const prevBtn = document.querySelector('.nav-arrow.prev');
 		const nextBtn = document.querySelector('.nav-arrow.next');
 
+		// A failed CDN load disables rendering only; navigation and the empty
+		// state keep working. Listeners are registered before this promise settles
+		// so update messages that arrive during a slow load are not lost.
+		const mermaidReady = (async () => {
+			try {
+				const { default: loaded } = await import('{{MERMAID_URL}}');
+				loaded.initialize({ startOnLoad: false, theme });
+				return loaded;
+			} catch (error) {
+				console.error('Mermaid failed to load:', error);
+				return null;
+			}
+		})();
+
+		/**
+		 * Replaces the slide area with a text-only notice. textContent is used
+		 * so no diagram text or error message is parsed as markup.
+		 */
+		function showNotice(lines, className) {
+			const box = document.createElement('div');
+			box.className = 'notice ' + (className || '');
+			lines.forEach(([text, hint]) => {
+				const p = document.createElement('p');
+				p.textContent = text;
+				if (hint) p.className = 'hint';
+				box.appendChild(p);
+			});
+			container.replaceChildren(box);
+		}
+
+		function updateChrome() {
+			const empty = diagrams.length === 0;
+			document.body.classList.toggle('single-slide', diagrams.length <= 1);
+			counter.textContent = empty ? '' : (currentIndex + 1) + ' / ' + diagrams.length;
+			prevBtn.disabled = currentIndex === 0;
+			nextBtn.disabled = currentIndex >= diagrams.length - 1;
+		}
+
 		async function renderSlide(index) {
 			currentIndex = index;
-			container.innerHTML = '<pre class="mermaid">' + diagrams[currentIndex] + '</pre>';
+			const token = ++renderToken;
+			const slideId = 'mermaid-slide-' + token;
+			updateChrome();
 
-			try {
-				await mermaid.run({ querySelector: '.mermaid' });
-			} catch (error) {
-				console.error('Mermaid rendering failed:', error);
-				container.innerHTML = '<p style="color: var(--vscode-errorForeground);">Failed to render diagram ' + (currentIndex + 1) + '</p>';
+			if (diagrams.length === 0) {
+				showNotice([
+					['No Mermaid diagrams found in this file.'],
+					['Add a ```mermaid code block to get started.', true]
+				]);
+				return;
+			}
+			const mermaid = await mermaidReady;
+			if (token !== renderToken) return;
+			if (!mermaid) {
+				showNotice([
+					['Could not load Mermaid from the CDN.'],
+					['Check your network connection, then reopen the slideshow.', true]
+				], 'error');
+				return;
 			}
 
-			counter.textContent = (currentIndex + 1) + ' / ' + diagrams.length;
-			prevBtn.disabled = currentIndex === 0;
-			nextBtn.disabled = currentIndex === diagrams.length - 1;
+			try {
+				// render() returns SVG that Mermaid has sanitized under its default
+				// "strict" security level; the diagram text itself never touches innerHTML.
+				const { svg } = await mermaid.render(slideId, diagrams[index]);
+				if (token !== renderToken) return;
+				const slide = document.createElement('div');
+				slide.className = 'mermaid';
+				slide.innerHTML = svg;
+				container.replaceChildren(slide);
+			} catch (error) {
+				// A failed render leaves Mermaid's scratch element ("d" + id) in the body.
+				document.getElementById('d' + slideId)?.remove();
+				if (token !== renderToken) return;
+				console.error('Mermaid rendering failed:', error);
+				showNotice([['Failed to render diagram ' + (index + 1)]], 'error');
+			}
 		}
 
 		function goNext() {
@@ -186,21 +250,10 @@
 
 		window.addEventListener('message', (event) => {
 			const message = event.data;
-			if (message.type === 'update') {
-				diagrams.length = 0;
-				diagrams.push(...message.diagrams);
-
-				if (diagrams.length === 0) {
-					container.innerHTML = '<p style="color: var(--vscode-descriptionForeground);">No Mermaid diagrams found.</p>';
-					counter.textContent = '';
-					document.body.classList.add('single-slide');
-					return;
-				}
-
-				document.body.classList.toggle('single-slide', diagrams.length === 1);
-				const newIndex = Math.min(currentIndex, diagrams.length - 1);
-				renderSlide(newIndex);
-			}
+			if (!message || message.type !== 'update' || !Array.isArray(message.diagrams)) return;
+			diagrams.length = 0;
+			diagrams.push(...message.diagrams.filter((d) => typeof d === 'string'));
+			renderSlide(Math.max(0, Math.min(currentIndex, diagrams.length - 1)));
 		});
 
 		renderSlide(0);
