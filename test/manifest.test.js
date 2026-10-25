@@ -26,12 +26,8 @@ describe("manifest and release metadata", () => {
 
 	it("declares the minimum Node version the toolchain needs", () => {
 		assert.match(pkg.engines.node, /^>=22\.\d+\.\d+$/);
-		const workflow = read(".github/workflows/ci.yml");
 		const nodeVersion = pkg.engines.node.replace(">=", "");
-		assert.ok(
-			workflow.includes(`'${nodeVersion}'`) || workflow.includes(`"${nodeVersion}"`),
-			"CI runs the lowest supported Node"
-		);
+		assert.equal(read(".nvmrc").trim(), nodeVersion, "CI reads .nvmrc, which names the lowest supported Node");
 	});
 
 	it("declares support for untrusted workspaces because no setting or file can run code", () => {
