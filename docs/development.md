@@ -92,33 +92,38 @@ Release only from `main`, after the feature branches are merged and CI passes. E
     git tag -a vX.Y.Z -m "Release version X.Y.Z"
     ```
 
-7. Push the branch and the tag.
+7. Push the branch and the tag. The tag push starts `.github/workflows/release.yml`.
 
     ```bash
     git push origin main
     git push origin vX.Y.Z
     ```
 
-8. Publish with the existing login.
+8. Let the workflow publish to Open VSX, then publish to the Marketplace with the existing login.
 
     ```bash
     npm run publish
     ```
 
+    - The workflow checks that the tag is on `main` and matches `package.json` and the changelog entry. It runs the tests, packages the extension, creates the GitHub release, and publishes to Open VSX.
+    - The release workflow publishes to Open VSX. It signs in with a short-lived OIDC token that Open VSX issues to the registered trusted publisher (repository `kanad13/mermaid-slideshow-extension`, workflow `release.yml`), so no stored token is needed. The repository secret `OVSX_PAT` is a fallback: when it is set, the workflow uses it instead of OIDC. Delete it after a release has published through OIDC.
+    - If the run fails after the tag exists, fix the cause and start the workflow again from the Actions tab (**Release > Run workflow**, from `main`, with the tag). Open VSX ignores a version it already has, so repeating a run is safe.
+
 9. Verify the result:
     - The Marketplace page shows the new version. Propagation can take several minutes.
-    - The GitHub release exists with the `.vsix` attached. The tag-triggered workflow creates it.
+    - The GitHub release exists with the `.vsix` attached, and the workflow's last step confirms the version on Open VSX. The tag-triggered workflow does both.
     - CI is green on `main`.
 
 ## 4. Troubleshooting
 
-| Symptom                                 | Action                                                                    |
-| --------------------------------------- | ------------------------------------------------------------------------- |
-| Marketplace rejects an existing version | Confirm that `package.json` holds the new version, then wait and refresh  |
-| The tag points to the wrong commit      | Stop and ask the maintainer before you move or delete a pushed tag        |
-| `vsce` reports an authorization error   | Create a new token and run `npx vsce login KunalPathak`                   |
-| `npm test` fails only on one Node line  | Run the failing suite on the minimum Node version named in `package.json` |
-| The format check fails                  | Run `npm run format` and review the diff                                  |
+| Symptom                                 | Action                                                                         |
+| --------------------------------------- | ------------------------------------------------------------------------------ |
+| Marketplace rejects an existing version | Confirm that `package.json` holds the new version, then wait and refresh       |
+| The tag points to the wrong commit      | Stop and ask the maintainer before you move or delete a pushed tag             |
+| `vsce` reports an authorization error   | Create a new token and run `npx vsce login KunalPathak`                        |
+| The Open VSX publish step fails         | Run the workflow again with the tag. A version Open VSX already has is skipped |
+| `npm test` fails only on one Node line  | Run the failing suite on the minimum Node version named in `package.json`      |
+| The format check fails                  | Run `npm run format` and review the diff                                       |
 
 ## 5. Checklist
 
