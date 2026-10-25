@@ -96,11 +96,11 @@ The goal is a published version that matches a tagged commit.
 - **Local proof:**
     - Build the `.vsix`, run the [editor smoke check](testing.md#editor-smoke-check), and wait for the maintainer's confirmation that it works.
 - **Procedure:**
-    - Follow the [release procedure](development.md#3-release-procedure). The tag push starts the workflow that creates the GitHub release, and `npm run publish` sends the package to the Marketplace.
+    - Follow the [release procedure](development.md#3-release-procedure). The tag push starts the workflow that creates the GitHub release and publishes to Open VSX, and `npm run publish` sends the package to the Marketplace.
 - **Tag:**
     - Tag the exact commit that is published. If a fix lands after tagging, report it and ask before you move the tag.
 - **Verify:**
-    - Check the Marketplace listing (allow for propagation delay), the GitHub release asset, and CI.
+    - Check the Marketplace listing (allow for propagation delay), Open VSX, the GitHub release asset, and CI.
 
 ## Sync and Audit
 
