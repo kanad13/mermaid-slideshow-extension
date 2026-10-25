@@ -80,6 +80,7 @@ Additional rules by group:
 
 - The minimum Node version is the oldest maintained Node line that every tool supports.
 - CI runs the exact minimum version, and `package.json` `engines.node` states it.
+- `.nvmrc` holds the minimum version and CI reads it. CI and `test/manifest.test.js` fail when it differs from `engines.node`.
 
 ## Configuration policy
 

@@ -13,15 +13,16 @@ This extension presents Mermaid diagrams from markdown files as a focused, full-
 
 Match the maintainer's request to a workflow in [docs/workflows.md](docs/workflows.md) and run it. Stop at the stopping point that the workflow names. The workflow column must equal a heading in that guide; `test/docs.test.js` checks it.
 
-| If the maintainer says...                                                    | Run workflow             |
-| :--------------------------------------------------------------------------- | :----------------------- |
-| "Evaluate adding X", "Is X worth it?", "Add a dependency"                    | Evaluate a Change        |
-| "Add X", "Implement X" (after approval)                                      | Build an Approved Change |
-| "Update", "upgrade", "maintain", "dependency review", "is the repo current?" | Maintain and Upgrade     |
-| "X is broken", "fix this bug"                                                | Fix a Defect             |
-| "Release", "publish", "ship it"                                              | Release                  |
-| "Check for drift", "sync the repo", "are the docs accurate?"                 | Sync and Audit           |
-| "Update the docs", "rewrite the README"                                      | Change Documentation     |
+| If the maintainer says...                                                                 | Run workflow                  |
+| :---------------------------------------------------------------------------------------- | :---------------------------- |
+| "Evaluate adding X", "Is X worth it?", "Add a dependency"                                 | Evaluate a Change             |
+| "Add X", "Implement X" (after approval)                                                   | Build an Approved Change      |
+| "Update", "upgrade", "maintain", "dependency review", "is the repo current?"              | Maintain and Upgrade          |
+| "X is broken", "fix this bug"                                                             | Fix a Defect                  |
+| "Release", "publish", "ship it"                                                           | Release                       |
+| "Check for drift", "sync the repo", "are the docs accurate?"                              | Sync and Audit                |
+| "Update the docs", "rewrite the README"                                                   | Change Documentation          |
+| "Do the other extensions need this?", "share this change", "check the sibling extensions" | Share With Sibling Extensions |
 
 - **No match:**
     - A question about the code or the docs gets an answer and no file changes.
@@ -29,6 +30,8 @@ Match the maintainer's request to a workflow in [docs/workflows.md](docs/workflo
 - **Evidence:**
     - Verify claims about libraries, store rules, and behavior against the code, a command's output, or primary documentation.
     - Report a check as passed only if you ran it.
+- **Shared files:**
+    - After you change a file listed in [docs/sibling-extensions.md](docs/sibling-extensions.md), run Share With Sibling Extensions before you finish.
 
 ## Architecture Rules
 
@@ -78,4 +81,5 @@ When a task touches three or more files:
 - [docs/dependencies.md](docs/dependencies.md): dependency and version policy. Read it before you change any version.
 - [docs/testing.md](docs/testing.md): workflow-to-evidence map and manual checks.
 - [docs/workflows.md](docs/workflows.md): the procedure and stopping point for each kind of request.
+- [docs/sibling-extensions.md](docs/sibling-extensions.md): the other extensions published as KunalPathak, and the files they share.
 - [docs/decisions.md](docs/decisions.md): ideas that are not built. It is context, not a task list. Do not implement an entry without a maintainer request.
