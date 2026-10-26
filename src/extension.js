@@ -4,7 +4,7 @@
  * Why it exists: VS Code's markdown preview renders diagrams inline; this module
  * presents each Mermaid diagram of a markdown file as one slide in a webview.
  *
- * Approach: diagram text is extracted with a regular expression, embedded in
+ * Approach: diagram text is extracted by a line scanner, embedded in
  * src/webview.html through single-pass substitution, and refreshed by posted
  * messages while the file changes. Invariants: one panel at a time, no global
  * state, every render uses a fresh nonce, and diagram text and settings are
@@ -22,6 +22,12 @@ const crypto = require("crypto");
  */
 const MERMAID_VERSION = "12.1.0";
 
+/**
+ * Directory of the pinned package. The policy allows scripts from this
+ * directory only, so no other jsDelivr package can execute in the webview.
+ */
+const MERMAID_BASE_URL = `https://cdn.jsdelivr.net/npm/mermaid@${MERMAID_VERSION}/dist/`;
+
 /** Mermaid themes the settings UI offers; anything else is rejected. */
 const MERMAID_THEMES = ["default", "dark", "forest", "neutral"];
 
@@ -32,21 +38,53 @@ const MERMAID_THEMES = ["default", "dark", "forest", "neutral"];
  * - Backtick style: ```mermaid ... ```
  * - Azure DevOps / Fenced Div style: ::: mermaid ... :::
  *
- * Operates on raw text via regex - no markdown parsing required.
+ * Scans line by line instead of matching the whole text, so that a ::: block
+ * closes only at a ::: line of its own (a regex would end it at the class
+ * shorthand in "A:::hot --> B") and a Mermaid fence quoted inside another code
+ * block stays sample text. An unclosed block is dropped.
  *
  * @param {string} rawText - Raw markdown file content
  * @returns {string[]} Array of Mermaid diagram code strings (trimmed)
  */
 function extractMermaidBlocks(rawText) {
 	const blocks = [];
+	/** @type {"" | "backtick" | "colon" | "code"} */
+	let inside = "";
+	let current = [];
 
-	// One alternation keeps slides in document order across both syntaxes.
-	const blockRegex = /```mermaid\s*\n([\s\S]*?)```|:::\s*mermaid\s*\n([\s\S]*?):::/g;
-	let match;
-	while ((match = blockRegex.exec(rawText)) !== null) {
-		const code = (match[1] !== undefined ? match[1] : match[2]).trim();
+	function finish() {
+		const code = current.join("\n").trim();
 		if (code) {
 			blocks.push(code);
+		}
+		current = [];
+		inside = "";
+	}
+
+	// One pass keeps slides in document order across both syntaxes.
+	for (const line of rawText.split(/\r?\n/)) {
+		if (inside === "backtick") {
+			if (/^```\s*$/.test(line)) {
+				finish();
+			} else {
+				current.push(line);
+			}
+		} else if (inside === "colon") {
+			if (/^:::\s*$/.test(line)) {
+				finish();
+			} else {
+				current.push(line);
+			}
+		} else if (inside === "code") {
+			if (/^```\s*$/.test(line)) {
+				inside = "";
+			}
+		} else if (/^```mermaid\s*$/.test(line)) {
+			inside = "backtick";
+		} else if (/^```/.test(line)) {
+			inside = "code";
+		} else if (/^:::\s*mermaid/.test(line)) {
+			inside = "colon";
 		}
 	}
 
@@ -134,7 +172,8 @@ function getWebviewContent(diagrams, nonce, theme) {
 	const values = {
 		NONCE: nonce,
 		THEME: MERMAID_THEMES.includes(theme) ? theme : "default",
-		MERMAID_URL: `https://cdn.jsdelivr.net/npm/mermaid@${MERMAID_VERSION}/dist/mermaid.esm.min.mjs`,
+		MERMAID_BASE_URL,
+		MERMAID_URL: MERMAID_BASE_URL + "mermaid.esm.min.mjs",
 		DIAGRAMS_JSON: toScriptJson(diagrams),
 		SINGLE_SLIDE_CLASS: diagrams.length === 1 ? "single-slide" : ""
 	};

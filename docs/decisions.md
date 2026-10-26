@@ -33,21 +33,21 @@ This log is context. It is not a backlog, and nothing in it is scheduled. Each e
 
 ### Fence-aware extraction
 
-**Verdict:** defer
+**Verdict:** scoped pursue (built in 1.4.1 for the common cases; the rest is deferred)
 
 **What it is:**
 
-- The extractor reads raw text with a regular expression, so a mermaid fence inside an outer fence, such as the README's syntax examples, becomes a slide.
-- A fence-aware scanner would skip those.
+- The extractor once read raw text with a regular expression, so a mermaid fence inside an outer fence became a slide, and a `::: mermaid` block ended at the class shorthand in `A:::hot --> B`.
+- It now scans line by line. A fence opens at the start of a line, a `:::` block closes only at a `:::` line of its own, and a mermaid fence inside another triple-backtick block is skipped.
 
-**Why not now:**
+**What stays deferred:**
 
-- A scanner must follow CommonMark rules for fence length, indentation, and tilde fences, which is a larger and riskier component than the current expression.
-- The effect appears only in documents that show Mermaid syntax as an example.
+- Fences of four or more backticks and `~~~` fences. Following the CommonMark rules for fence length, indentation, and tilde fences is a larger and riskier component than the scanner.
+- The effect appears only in documents that show Mermaid syntax inside such a fence.
 
 **Reopen when:**
 
-- Users report phantom slides, or the extension adds another extraction syntax.
+- Users report phantom slides from longer or tilde fences, or the extension adds another extraction syntax.
 
 ### Bundle Mermaid with the extension
 

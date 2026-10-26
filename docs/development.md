@@ -107,23 +107,24 @@ Release only from `main`, after the feature branches are merged and CI passes. E
 
     - The workflow checks that the tag is on `main` and matches `package.json` and the changelog entry. It runs the tests, packages the extension, creates the GitHub release, and publishes to Open VSX.
     - The release workflow publishes to Open VSX. It signs in with a short-lived OIDC token that Open VSX issues to the registered trusted publisher (repository `kanad13/mermaid-slideshow-extension`, workflow `release.yml`), so no stored token is needed. The repository secret `OVSX_PAT` is a fallback: when it is set, the workflow uses it instead of OIDC. Delete it after a release has published through OIDC.
-    - If the run fails after the tag exists, fix the cause and start the workflow again from the Actions tab (**Release > Run workflow**, from `main`, with the tag). Open VSX ignores a version it already has, so repeating a run is safe.
+    - If the run fails after the tag exists, fix the cause and start the workflow again from the Actions tab (**Release > Run workflow**, from `main`, with the tag), or run `gh workflow run Release --ref main -f tag=vX.Y.Z`. Open VSX can be read-only for a while, and a retry then publishes it. Open VSX ignores a version it already has, so repeating a run is safe.
+    - Tag the merge commit after CI is green on `main`. Never re-push an old tag, because the workflow runs on every pushed `vX.Y.Z` tag and would run that release again.
 
 9. Verify the result:
-    - The Marketplace page shows the new version. Propagation can take several minutes.
-    - The GitHub release exists with the `.vsix` attached, and the workflow's last step confirms the version on Open VSX. The tag-triggered workflow does both.
+    - The Marketplace page lags 5 to 10 minutes. Check it with `vsce show KunalPathak.mermaid-slideshow`, not a polling loop.
+    - Check Open VSX with `ovsx show KunalPathak.mermaid-slideshow` and the release with `gh release view vX.Y.Z`. The workflow's last step also confirms the version on Open VSX.
     - CI is green on `main`.
 
 ## 4. Troubleshooting
 
-| Symptom                                 | Action                                                                         |
-| --------------------------------------- | ------------------------------------------------------------------------------ |
-| Marketplace rejects an existing version | Confirm that `package.json` holds the new version, then wait and refresh       |
-| The tag points to the wrong commit      | Stop and ask the maintainer before you move or delete a pushed tag             |
-| `vsce` reports an authorization error   | Create a new token and run `npx vsce login KunalPathak`                        |
-| The Open VSX publish step fails         | Run the workflow again with the tag. A version Open VSX already has is skipped |
-| `npm test` fails only on one Node line  | Run the failing suite on the minimum Node version named in `package.json`      |
-| The format check fails                  | Run `npm run format` and review the diff                                       |
+| Symptom                                 | Action                                                                                                                       |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Marketplace rejects an existing version | Confirm that `package.json` holds the new version, then wait and refresh                                                     |
+| The tag points to the wrong commit      | Stop and ask the maintainer before you move or delete a pushed tag                                                           |
+| `vsce` reports an authorization error   | Create a new token and run `npx vsce login KunalPathak`                                                                      |
+| The Open VSX publish step fails         | Open VSX can be read-only. Run `gh workflow run Release --ref main -f tag=vX.Y.Z` again. A version it already has is skipped |
+| `npm test` fails only on one Node line  | Run the failing suite on the minimum Node version named in `package.json`                                                    |
+| The format check fails                  | Run `npm run format` and review the diff                                                                                     |
 
 ## 5. Checklist
 

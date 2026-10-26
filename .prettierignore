@@ -5,3 +5,5 @@ src/webview.html
 *.vsix
 examples/
 .github/
+# Shared byte for byte with the sibling extensions (docs/sibling-extensions.md), so it keeps its own format.
+docs/sibling-extensions.md

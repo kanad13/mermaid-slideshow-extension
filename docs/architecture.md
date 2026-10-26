@@ -76,18 +76,19 @@ User edits the file → debounced postMessage({ type: "update", diagrams }) → 
 
 Markdown files can come from untrusted sources, and workspace settings travel with a repository. The design assumes that diagram text and the theme setting are hostile.
 
-| Layer                          | Mechanism                                                                                                           |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| Content Security Policy        | `default-src 'none'`, scripts only with the render's nonce or from the CDN host, inline styles for Mermaid output   |
-| Random nonce                   | 16 bytes from `crypto.randomBytes`, new for every render                                                            |
-| Escaped data in the page       | `toScriptJson` escapes `<`, `>`, `&`, U+2028, and U+2029, so diagram text cannot end the script element             |
-| Single-pass substitution       | One regular expression replaces every placeholder with a replacer function, so inserted text is never scanned again |
-| Theme allowlist                | The theme value must be one of four names before it reaches the script                                              |
-| Mermaid default security level | The page never sets `securityLevel`; Mermaid sanitizes labels and disables click handlers                           |
-| Render API                     | `mermaid.render()` returns SVG, and diagram text never passes through `innerHTML`; notices use `textContent`        |
-| Webview resource access        | The panel grants no local resource roots because the page loads no local files                                      |
-| Untrusted workspaces           | `package.json` declares support, because the theme allowlist and the escaping make a hostile folder harmless        |
-| Webview sandbox                | VS Code isolates the webview from the filesystem and from extension internals                                       |
+| Layer                          | Mechanism                                                                                                                                                    |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Content Security Policy        | `default-src 'none'`, scripts only with the render's nonce or from the pinned Mermaid directory, no base tag or form posts, inline styles for Mermaid output |
+| Pinned script directory        | `script-src` names `cdn.jsdelivr.net/npm/mermaid@<version>/dist/`, not the whole host, so no other jsDelivr package can run                                  |
+| Random nonce                   | 16 bytes from `crypto.randomBytes`, new for every render                                                                                                     |
+| Escaped data in the page       | `toScriptJson` escapes `<`, `>`, `&`, U+2028, and U+2029, so diagram text cannot end the script element                                                      |
+| Single-pass substitution       | One regular expression replaces every placeholder with a replacer function, so inserted text is never scanned again                                          |
+| Theme allowlist                | The theme value must be one of four names before it reaches the script                                                                                       |
+| Mermaid default security level | The page never sets `securityLevel`; Mermaid sanitizes labels and disables click handlers                                                                    |
+| Render API                     | `mermaid.render()` returns SVG, and diagram text never passes through `innerHTML`; notices use `textContent`                                                 |
+| Webview resource access        | The panel grants no local resource roots because the page loads no local files                                                                               |
+| Untrusted workspaces           | `package.json` declares support, because the theme allowlist and the escaping make a hostile folder harmless                                                 |
+| Webview sandbox                | VS Code isolates the webview from the filesystem and from extension internals                                                                                |
 
 The security limits that follow from loading code from a CDN are described in [dependencies.md](dependencies.md).
 
@@ -114,10 +115,12 @@ The security limits that follow from loading code from a CDN are described in [d
 - One constant, `MERMAID_VERSION` in `src/extension.js`, names the version.
 - An exact version keeps rendering and security behavior reviewable.
 
-**Regular-expression extraction:**
+**Line-scanner extraction:**
 
 - The extension needs only the diagram text, so a markdown parser would add weight without benefit.
-- A single alternation over both syntaxes keeps slides in document order.
+- One pass over the lines keeps slides in document order across both syntaxes.
+- A fence opens at the start of a line, and a `:::` block closes only at a `:::` line of its own. A mermaid fence inside another triple-backtick block is sample text.
+- Fences of four or more backticks and `~~~` fences are not recognized. [decisions.md](decisions.md#fence-aware-extraction) records why.
 
 **Slide position across full re-renders:**
 
@@ -133,7 +136,7 @@ The security limits that follow from loading code from a CDN are described in [d
 **Requires care:**
 
 - The Content Security Policy, nonce generation, and template substitution.
-- The extraction regular expression, because it defines which text becomes a slide.
+- The extraction scanner, because it defines which text becomes a slide.
 - The panel lifecycle, because timers and event listeners outlive a single command run.
 
 **Required checks after a change:**
