@@ -28,12 +28,12 @@ Some files must be identical in every repository. Others share a purpose and dif
 ## When to check the siblings
 
 - **Check after you change a shared file:**
-    - Any change to the files in the first two rows above must reach all five repositories.
+  - Any change to the files in the first two rows above must reach all five repositories.
 - **Check after you improve shared practice:**
-    - Examples are a new test technique, a security hardening step, a packaging rule, a tool upgrade, or a clearer documentation layout.
-    - Ask whether the other extensions have the same gap.
+  - Examples are a new test technique, a security hardening step, a packaging rule, a tool upgrade, or a clearer documentation layout.
+  - Ask whether the other extensions have the same gap.
 - **Skip changes that belong to one extension:**
-    - A feature, a bug fix, or a dependency used by only this extension needs no check.
+  - A feature, a bug fix, or a dependency used by only this extension needs no check.
 
 ## Compare a shared file with the siblings
 
@@ -50,10 +50,31 @@ done
 ## Carry a change to a sibling
 
 - **Get the code:**
-    - Ask the maintainer for the path of a local clone. Without one, run `gh repo clone kanad13/<repository>` into a scratch folder.
+  - Ask the maintainer for the path of a local clone. Without one, run `gh repo clone kanad13/<repository>` into a scratch folder.
 - **Work on a branch:**
-    - Read the sibling's `AGENTS.md` first. Each repository has its own rules for tests, documentation, and the changelog.
-    - Apply the change on a new branch, and run the sibling's `npm test`.
+  - Read the sibling's `AGENTS.md` first. Each repository has its own rules for tests, documentation, and the changelog.
+  - Apply the change on a new branch, and run the sibling's `npm test`.
 - **Stop for approval:**
-    - Do not push, merge, tag, or release a sibling without the maintainer's instruction.
-    - Report what changed in each sibling and which siblings need no change.
+  - Do not push, merge, tag, or release a sibling without the maintainer's instruction.
+  - Report what changed in each sibling and which siblings need no change.
+
+## Tools and authority
+
+Three command-line tools are installed and signed in on the maintainer's machine. Look up each command with `--help` before you rely on this list.
+
+- **Tools:**
+  - `gh` (GitHub CLI): check with `gh auth status`.
+  - `vsce` (Visual Studio Marketplace): check with `vsce verify-pat KunalPathak`.
+  - `ovsx` (Open VSX): check with `ovsx verify-pat KunalPathak`, which reads the token from the `OVSX_PAT` variable. Without it, `ovsx show KunalPathak.<name>` still reads the registry.
+- **Reading needs no approval:**
+  - Use the tools for every GitHub, Marketplace, and Open VSX read: repository, release, issue, pull request, workflow, and registry state.
+  - Do not ask the maintainer to open a web page for something a tool can print.
+  - Examples: `gh release view`, `gh run list`, `gh pr view`, `vsce show KunalPathak.<name>`, `ovsx show KunalPathak.<name>`.
+- **Changing state needs the maintainer's word:**
+  - Merge, push, tag, and publish still happen only when the maintainer says so (see "Git and Commits" in `AGENTS.md`).
+  - After the maintainer has said so, run every step with the tools and do not ask again for each command.
+- **Missing tool or sign-in:**
+  - Install the tool (`brew install gh`, `npm install -g @vscode/vsce ovsx`), then ask the maintainer to sign in.
+  - The agent never reads, prints, stores, or pastes a token.
+- **Permission prompts:**
+  - This text does not change the prompts of an agent harness. In Claude Code, they come from `settings.json`, which the maintainer edits.
