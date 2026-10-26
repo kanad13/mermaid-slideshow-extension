@@ -33,7 +33,7 @@ graph TD
 
 ::: mermaid
 graph TD
-    C --> D
+C --> D
 :::
 ````
 
@@ -48,8 +48,8 @@ Open Settings and search for "Mermaid Slideshow". The setting `mermaidSlideshow.
 
 A theme change applies to the open slideshow and returns it to the first slide.
 
-| Forest | Neutral |
-| :----- | :------ |
+| Forest                                                                                                                                                                      | Neutral                                                                                                                                                                      |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | ![A Mermaid state diagram in the forest theme with green states](https://raw.githubusercontent.com/kanad13/mermaid-slideshow-extension/main/assets/readme-theme-forest.png) | ![A Mermaid state diagram in the neutral theme with gray states](https://raw.githubusercontent.com/kanad13/mermaid-slideshow-extension/main/assets/readme-theme-neutral.png) |
 
 ## Install
