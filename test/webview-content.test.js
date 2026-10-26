@@ -43,7 +43,14 @@ describe("webview content", () => {
 
 	it("puts the nonce in the policy-governed script tag and the policy", () => {
 		const html = ext.getWebviewContent(["graph TD\n A-->B"], "abc123", "dark");
-		assert.match(html, /script-src 'nonce-abc123' https:\/\/cdn\.jsdelivr\.net;/);
+		assert.ok(
+			html.includes(
+				`script-src 'nonce-abc123' https://cdn.jsdelivr.net/npm/mermaid@${ext.MERMAID_VERSION}/dist/;`
+			),
+			"script-src must name the pinned Mermaid directory, not all of jsDelivr"
+		);
+		assert.match(html, /base-uri 'none'/);
+		assert.match(html, /form-action 'none'/);
 		assert.match(html, /<script type="module" nonce="abc123">/);
 		assert.match(html, /default-src 'none'/);
 		assert.doesNotMatch(html, /unsafe-eval/);

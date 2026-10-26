@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}' https://cdn.jsdelivr.net; style-src 'unsafe-inline';">
+	<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{NONCE}}' {{MERMAID_BASE_URL}}; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none';">
 	<title>Mermaid Slideshow</title>
 	<style>
 		* { box-sizing: border-box; margin: 0; padding: 0; }

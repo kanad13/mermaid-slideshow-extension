@@ -97,4 +97,30 @@ describe("extractMermaidBlocks", () => {
 	it("does not treat a mermaid-prefixed language name as mermaid", () => {
 		assert.deepEqual(extractMermaidBlocks("```mermaidjs\ngraph TD\n```\n"), []);
 	});
+
+	it("keeps the A:::class shorthand inside a ::: mermaid block", () => {
+		assert.deepEqual(extractMermaidBlocks("::: mermaid\ngraph TD\n  A:::hot --> B\n:::\n"), [
+			"graph TD\n  A:::hot --> B"
+		]);
+	});
+
+	it("closes a ::: mermaid block only at a ::: line of its own", () => {
+		const input = "::: mermaid\ngraph TD\n  B:::hot --> C\n:::\n\n::: mermaid\ngraph LR\n  X --> Y\n:::\n";
+		const result = extractMermaidBlocks(input);
+		assert.equal(result.length, 2);
+		assert.match(result[0], /B:::hot --> C/);
+		assert.match(result[1], /graph LR/);
+	});
+
+	it("does not extract a Mermaid fence that appears inside other fenced code", () => {
+		assert.deepEqual(extractMermaidBlocks("```markdown\n::: mermaid\ngraph TD\n  A --> B\n:::\n```\n"), []);
+	});
+
+	it("does not extract ::: mermaid text from the middle of a line", () => {
+		assert.deepEqual(extractMermaidBlocks("Write ::: mermaid\nfoo\n:::\n"), []);
+	});
+
+	it("drops a block that is never closed", () => {
+		assert.deepEqual(extractMermaidBlocks("```mermaid\ngraph TD\n  A --> B\n"), []);
+	});
 });
