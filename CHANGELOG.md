@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.2] - 2026-10-26
+
+### Changed
+
+- The README shows screenshots of the extension instead of animated GIFs. The extension is unchanged.
+
 ## [1.4.1] - 2026-10-26
 
 ### Fixed

@@ -115,6 +115,15 @@ Release only from `main`, after the feature branches are merged and CI passes. E
     - Check Open VSX with `ovsx show KunalPathak.mermaid-slideshow` and the release with `gh release view vX.Y.Z`. The workflow's last step also confirms the version on Open VSX.
     - CI is green on `main`.
 
+### Readme images
+
+- Link each image by an absolute `https://raw.githubusercontent.com/kanad13/mermaid-slideshow-extension/main/assets/<file>.png` URL.
+- The package leaves `assets/readme-*.png` out, so a relative link breaks on the Marketplace and Open VSX pages. A `github.com/.../blob/...` link returns an HTML page, not the image.
+- Use PNG, because the Marketplace rejects SVG. Name the files `assets/readme-*.png`, and give each image alt text of one full sentence.
+- Add the file on the same branch as the link. The image URL works for readers only after the branch merges to `main`.
+- `examples/showcase.md` is the document behind the screenshots. Serve it with `node scripts/webview-harness.js`, capture each slide in a 1100 by 700 viewport, then crop. On macOS, `sips -c H W --cropOffset Y X` ignores a zero offset and crops from the centre, so use an offset of 1. Open every cropped image before you link it.
+- The `readme images` suite in `test/docs.test.js` checks the URLs, the files, the format, the alt text, and a minimum of four images.
+
 ## 4. Troubleshooting
 
 | Symptom                                 | Action                                                                                                                       |
