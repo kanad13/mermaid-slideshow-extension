@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.1] - 2026-10-26
+
+### Fixed
+
+- A `::: mermaid` diagram that uses the class shorthand `A:::name` is no longer cut short.
+- A Mermaid block shown inside another code block is no longer extracted as a slide.
+
+### Security
+
+- The page can now run scripts only from the pinned Mermaid directory on jsDelivr, not from the whole host, and it blocks base-tag rewrites and form posts.
+
 ## [1.4.0] - 2026-10-25
 
 ### Changed
