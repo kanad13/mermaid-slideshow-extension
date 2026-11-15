@@ -68,13 +68,13 @@ Additional rules by group:
 **Editor releases:**
 
 - Test on the current stable release. Insiders builds are not a target.
-- The maintainer sets the engine floor. The quarterly review proposes the newest editor release that is at least 12 months old as the default.
-- Move the floor and the `@types/vscode` pin together at each quarterly review.
+- The engine floor is the lowest base version among the forks the README advertises. Cursor is the lowest today, at 1.105.x, so every sibling extension uses 1.105.0.
+- Raise the floor only when the code needs a newer API, or when the lowest advertised fork rebases onto a newer base. Never raise it because of a date.
+- Move the floor, the `@types/vscode` pin, and the test ceiling together, in every sibling extension.
 
 **Editor forks:**
 
-- Before you raise the floor, check the base editor version of each fork the README advertises.
-- A floor above a fork's base blocks installation there. Present that trade-off to the maintainer when the floor would exclude a named fork.
+- Before you raise the floor, read each advertised fork's base version in its About dialog. A floor above a fork's base blocks installation there.
 
 **Node:**
 
