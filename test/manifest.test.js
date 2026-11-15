@@ -17,6 +17,15 @@ describe("manifest and release metadata", () => {
 		assert.equal(pkg.devDependencies["@types/vscode"], floor);
 	});
 
+	it("keeps the editor floor at or below Cursor's base, 1.105.0", () => {
+		// Cursor is the lowest fork base the README advertises. A higher floor blocks installation there.
+		// Raise this ceiling only for a named API need or a fork rebase, in every sibling extension.
+		const floor = pkg.engines.vscode.replace(/^\^/, "").split(".").map(Number);
+		const ceiling = [1, 105, 0];
+		const cmp = floor.findIndex((n, i) => n !== ceiling[i]);
+		assert.ok(cmp === -1 || floor[cmp] < ceiling[cmp], "engines.vscode is above 1.105.0");
+	});
+
 	it("uses the same version in the manifest, the lockfile and the newest changelog entry", () => {
 		assert.equal(lock.version, pkg.version);
 		assert.equal(lock.packages[""].version, pkg.version);
